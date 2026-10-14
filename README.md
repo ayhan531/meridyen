@@ -10,8 +10,11 @@ Borsa İstanbul işlem platformu: tanıtım sayfası, hesap açma, giriş ve iş
 
 ## Render'a dağıtım
 
-1. Bu klasörü bir GitHub (ya da GitLab) deposuna gönderin:
+1. GitHub'da boş bir depo açın (ör. `meridyen`) ve bu klasörü gönderin:
    ```
+   git init -b main
+   git add -A
+   git commit -m "Meridyen Yatırım"
    git remote add origin https://github.com/<kullanici>/meridyen.git
    git push -u origin main
    ```

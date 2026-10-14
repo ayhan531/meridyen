@@ -1,0 +1,36 @@
+/** Piyasanın açılış verisi (uygulamadaki STOCKS / INDICES ile aynı). Fiyat motoru bunun üzerinde çalışır. */
+export const BASE_STOCKS: ReadonlyArray<{ s: string; p: number; o: number; pc: number }> = [
+  { s: 'THYAO', p: 312.50, o: 305.25, pc: 305.25 },
+  { s: 'ASELS', p: 121.80, o: 123.2, pc: 123.2 },
+  { s: 'KCHOL', p: 236.40, o: 234.6, pc: 234.2 },
+  { s: 'BIMAS', p: 548.00, o: 540.5, pc: 539.0 },
+  { s: 'SISE', p: 52.15, o: 52.6, pc: 52.4 },
+  { s: 'EREGL', p: 55.70, o: 54.1, pc: 54.0 },
+  { s: 'GARAN', p: 152.30, o: 150.6, pc: 150.4 },
+  { s: 'AKBNK', p: 74.85, o: 75.4, pc: 75.35 },
+  { s: 'TUPRS', p: 188.90, o: 188.2, pc: 188.3 },
+  { s: 'FROTO', p: 1142.00, o: 1160.0, pc: 1165.9 },
+  { s: 'ISCTR', p: 14.62, o: 14.50, pc: 14.47 },
+  { s: 'YKBNK', p: 34.90, o: 35.00, pc: 35.05 },
+  { s: 'SAHOL', p: 104.70, o: 104.00, pc: 103.81 },
+  { s: 'TCELL', p: 98.35, o: 97.20, pc: 96.97 },
+  { s: 'TTKOM', p: 54.80, o: 54.95, pc: 54.99 },
+  { s: 'PETKM', p: 22.18, o: 22.40, pc: 22.46 },
+  { s: 'HEKTS', p: 8.96, o: 9.15, pc: 9.18 },
+  { s: 'KRDMD', p: 29.44, o: 28.95, pc: 28.83 },
+  { s: 'PGSUS', p: 254.60, o: 251.00, pc: 250.15 },
+  { s: 'TOASO', p: 219.30, o: 221.00, pc: 221.34 },
+  { s: 'ARCLK', p: 157.40, o: 156.80, pc: 156.55 },
+  { s: 'VESTL', p: 71.05, o: 69.20, pc: 68.97 },
+  { s: 'MGROS', p: 612.00, o: 606.00, pc: 604.80 },
+  { s: 'ENKAI', p: 63.25, o: 62.90, pc: 62.80 },
+];
+
+export const BASE_INDICES: ReadonlyArray<{ n: string; v: string; c: number }> = [
+  { n: 'BIST 100', v: '12.418,63', c: 1.12 },
+  { n: 'BIST 30', v: '13.502,10', c: 1.34 },
+  { n: 'USD/TRY', v: '42,81', c: 0.06 },
+  { n: 'EUR/TRY', v: '49,12', c: -0.11 },
+  { n: 'Gram Altın', v: '5.284,40', c: 0.58 },
+  { n: 'Brent', v: '$71,40', c: -0.72 },
+];

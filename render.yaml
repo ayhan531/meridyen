@@ -1,0 +1,59 @@
+# Meridyen Yatırım — Render Blueprint
+# Render panelinde: New > Blueprint > bu depoyu seçin. Üç kaynak birlikte kurulur:
+#   meridyen-db  (PostgreSQL)   meridyen-api (NestJS)   meridyen-web (Next.js)
+
+databases:
+  - name: meridyen-db
+    plan: free
+    region: frankfurt
+    databaseName: meridyen
+    user: meridyen
+
+services:
+  - type: web
+    name: meridyen-api
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: apps/api
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        fromDatabase:
+          name: meridyen-db
+          property: connectionString
+      - key: JWT_SECRET
+        generateValue: true
+      - key: COOKIE_SECURE
+        value: "true"
+      - key: SEED_DEMO
+        value: "true"
+      - key: SMS_MODE
+        value: screen
+
+  - type: web
+    name: meridyen-web
+    runtime: node
+    plan: free
+    region: frankfurt
+    rootDir: apps/web
+    buildCommand: npm ci && npm run build
+    startCommand: npm start
+    healthCheckPath: /
+    envVars:
+      - key: NODE_VERSION
+        value: "22"
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
+      # API servisinin herkese açık adresi. Render alt alan adını farklı verirse
+      # (ör. meridyen-api-x1y2.onrender.com) panelden bu değeri güncelleyin.
+      - key: API_URL
+        value: https://meridyen-api.onrender.com

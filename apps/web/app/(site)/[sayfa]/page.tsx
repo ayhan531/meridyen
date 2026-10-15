@@ -1,6 +1,5 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
-import '@/styles/landing.css';
 import InfoPage from '@/components/site/InfoPage';
 import { PAGES } from '@/components/site/pages-data';
 

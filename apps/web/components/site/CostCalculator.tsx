@@ -15,9 +15,8 @@ export default function CostCalculator() {
     setAmt(parts.length > 1 ? int + ',' + parts.slice(1).join('').slice(0, 2) : int);
   };
   return (
-    <form className="card calc" aria-labelledby="calcTitle" onSubmit={(e) => e.preventDefault()}>
-      <h3 id="calcTitle" className="sr">Emir maliyeti hesaplayıcı</h3>
-      <div className="seg" role="group" aria-label="İşlem yönü">
+    <form className="cc" aria-label="Emir maliyeti hesaplayıcı" onSubmit={(e) => e.preventDefault()}>
+      <div className="cc-seg" role="group" aria-label="İşlem yönü">
         <button type="button" className="buy" aria-pressed={side === 'buy'} onClick={() => setSide('buy')}>Al</button>
         <button type="button" className="sell" aria-pressed={side === 'sell'} onClick={() => setSide('sell')}>Sat</button>
       </div>

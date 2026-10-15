@@ -6,7 +6,7 @@ import { AuthModule } from './auth/auth.module';
 import { JsonOnlyMiddleware } from './common/json-only.middleware';
 import { ClientIpThrottlerGuard } from './common/throttler.guard';
 import { typeormConfig } from './database/typeorm.config';
-import { HealthController } from './health.controller';
+import { EsubeModule } from './esube/esube.module';
 import { MarketModule } from './market/market.module';
 import { StateModule } from './state/state.module';
 
@@ -17,8 +17,8 @@ import { StateModule } from './state/state.module';
     AuthModule,
     StateModule,
     MarketModule,
+    EsubeModule,
   ],
-  controllers: [HealthController],
   providers: [{ provide: APP_GUARD, useClass: ClientIpThrottlerGuard }],
 })
 export class AppModule implements NestModule {

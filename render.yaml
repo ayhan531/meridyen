@@ -36,6 +36,23 @@ services:
         value: "true"
       - key: SMS_MODE
         value: screen
+      # E-şube (ottoman) arka ucu — bkz. README "E-şube arka ucu"
+      - key: ADMIN_TC
+        sync: false          # yönetici T.C. no (panelden girin)
+      - key: ADMIN_PASSWORD
+        sync: false          # yönetici şifresi (panelden girin; boşsa bilinen varsayılan kullanılır!)
+      - key: PUBLIC_BASE_URL
+        sync: false          # şifre yenileme e-postası bağlantıları için (ör. https://meridyen-web.onrender.com)
+      - key: SEED_TEST_USER
+        value: "false"       # herkese açık sitede bilinen şifreli test hesabı açılmasın
+      - key: REQUIRE_LIVE_MARKET_FOR_TRADING
+        value: "1"
+      - key: ALLOW_PRICE_SIMULATION
+        value: "0"
+      - key: RENDER_API_TOKEN
+        sync: false
+      - key: RENDER_SERVICE_ID
+        sync: false
 
   - type: web
     name: meridyen-web

@@ -6,11 +6,14 @@ import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import { AppModule } from './app.module';
 import { config } from './config';
+import { esubeMiddleware } from './esube/esube.middleware';
 
 async function bootstrap() {
-  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: false });
+  const app = await NestFactory.create<NestExpressApplication>(AppModule, { bufferLogs: false, bodyParser: false });
   app.set('trust proxy', 1);
   app.disable('x-powered-by');
+  /* E-şube (ottoman) uçları: kendi gövde okuyucusu ve başlıklarıyla en başta çalışır; /api/auth, /api/state, /api/prices Nest'e geçer. */
+  app.use(esubeMiddleware());
   app.use(helmet());
   app.use(cookieParser());
   app.useBodyParser('json', { limit: '1mb' });

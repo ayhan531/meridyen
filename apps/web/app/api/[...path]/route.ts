@@ -9,8 +9,8 @@ export const dynamic = 'force-dynamic';
 export const runtime = 'nodejs';
 
 const API_URL = () => (process.env.API_URL || 'http://localhost:4000').replace(/\/+$/, '');
-const FORWARD_REQ = ['content-type', 'cookie', 'accept', 'user-agent', 'accept-language'];
-const FORWARD_RES = ['content-type', 'cache-control', 'retry-after'];
+const FORWARD_REQ = ['content-type', 'cookie', 'accept', 'user-agent', 'accept-language', 'authorization', 'x-session-id', 'origin'];
+const FORWARD_RES = ['content-type', 'cache-control', 'retry-after', 'content-disposition'];
 
 async function proxy(req: NextRequest, ctx: { params: Promise<{ path: string[] }> }) {
   const { path } = await ctx.params;

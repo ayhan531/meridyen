@@ -1,5 +1,5 @@
 /**
- * Canlı fiyatlar: sunucudaki fiyat motorundan (GET /api/market) birkaç saniyede bir alınır ve
+ * Canlı fiyatlar: sunucudaki fiyat motorundan (GET /api/prices) birkaç saniyede bir alınır ve
  * STOCKS / INDICES nesnelerine yazılır. Abone olan ekranlar her güncellemede yeniden çizilir.
  */
 import { INDICES, STOCKS } from './market-data';
@@ -41,7 +41,7 @@ async function poll() {
   if (!running) return;
   if (typeof document !== 'undefined' && document.hidden) { timer = setTimeout(poll, every); return; }
   try {
-    const r = await fetch('/api/market', { cache: 'no-store' });
+    const r = await fetch('/api/prices', { cache: 'no-store' });
     if (r.ok) { apply((await r.json()) as Snapshot); subs.forEach((f) => { try { f(); } catch (e) { console.error(e); } }); }
   } catch { /* bağlantı kesikse bir sonraki turda yeniden denenir */ }
   if (running) timer = setTimeout(poll, every);
@@ -54,6 +54,6 @@ export const MeridyenMarket = {
   setEnabled(on: boolean) { try { localStorage.setItem(PREF, on ? 'on' : 'off'); } catch { /* yok say */ } if (on) MeridyenMarket.start(); else MeridyenMarket.stop(); },
   onTick(f: () => void) { subs.push(f); return () => { const i = subs.indexOf(f); if (i >= 0) subs.splice(i, 1); }; },
   /** Bir kez hemen çek (sayfa açılışında güncel fiyatla başlamak için). */
-  async refresh() { try { const r = await fetch('/api/market', { cache: 'no-store' }); if (r.ok) apply((await r.json()) as Snapshot); } catch { /* yok say */ } },
+  async refresh() { try { const r = await fetch('/api/prices', { cache: 'no-store' }); if (r.ok) apply((await r.json()) as Snapshot); } catch { /* yok say */ } },
   tickOf,
 };

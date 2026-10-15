@@ -20,7 +20,7 @@ Borsa İstanbul işlem platformu: tanıtım sayfası, hesap açma, giriş ve iş
    ```
 2. Render panelinde **New > Blueprint**'i seçin ve depoyu bağlayın. `render.yaml` okunur ve şunlar kurulur:
    - `meridyen-db` — PostgreSQL
-   - `meridyen-api` — NestJS API (`/api/health` sağlık denetimi; açılışta veritabanı tablolarını kendisi kurar)
+   - `meridyen-api` — NestJS API (`/api/health` ve `/healthz` sağlık denetimi; açılışta veritabanı tablolarını kendisi kurar)
    - `meridyen-web` — Next.js sitesi
 3. Kurulum bitince `meridyen-api` servisinin adresine bakın. Adres `https://meridyen-api.onrender.com` değilse
    (ad doluysa Render sonuna ek koyar), `meridyen-web` > Environment > `API_URL` değerini o adresle güncelleyin.
@@ -80,7 +80,7 @@ npm run dev                 # http://localhost:3000
 | Yöntem | Yol | Açıklama |
 |---|---|---|
 | GET | `/api/health` | Sağlık denetimi (veritabanı dahil) |
-| GET | `/api/market` | Anlık fiyatlar |
+| GET | `/api/prices` | Meridyen anlık fiyat motoru (`/api/market` artık e-şube piyasa ucudur) |
 | GET | `/api/auth/me` | Oturumdaki kullanıcı |
 | POST | `/api/auth/register` | Hesap aç |
 | POST | `/api/auth/login` | Giriş (iki adımlı doğrulama açıksa kod ister) |
@@ -93,3 +93,21 @@ npm run dev                 # http://localhost:3000
 | POST | `/api/auth/two-factor` | İki adımlı doğrulamayı aç / kapat |
 | DELETE | `/api/auth/account` | Hesabı kapat |
 | GET / PUT | `/api/state` | Kullanıcının uygulama verisi |
+
+
+## E-şube (ottoman) arka ucu — `apps/api/src/esube`
+
+Ottoman projesinin Python arka ucunun (`backend_server.py`, ~85 uç) davranışı birebir NestJS'e taşındı. Meridyen'in kendi uçları
+(`/api/auth/*`, `/api/state`, `/api/prices`) aynen çalışır; geri kalan **bütün `/api/*`**, `/uploads/*` ve `/healthz` e-şube katmanına gider.
+
+- **Kapsam:** giriş/kayıt/şifre sıfırlama/2FA, profil ve belge/avatar yükleme, bildirim ve web-push, piyasa/endeks/döviz, haber ve şirket profili,
+  portföy, emir (alış/satış/düzenle/iptal, T+2), para yatırma-çekme, tüm yönetici uçları (kullanıcı, emir, para, bakiye/pozisyon düzeltme, fiyat, ayar,
+  katılım endeksi, denetim kaydı, rapor/CSV, proje ve APK dışa aktarma, Render durum/dağıtım/alan adı).
+- **Veritabanı:** aynı PostgreSQL içinde ayrı `esube` şeması (Meridyen tablolarına dokunmaz); açılışta kendi kendine kurulur.
+- **Yüklemeler:** Render ücretsiz planda disk kalıcı olmadığı için belgeler/avatar `esube.uploaded_files` tablosunda saklanır ve `/uploads/<ad>` ile oturumla servis edilir.
+- **Bilinen davranışlar (Python ile aynı):** `/api/profile/reset`, `/api/my/reset`, `/api/admin/reset-account` Python sürümünde de çalışmayan uçlardır (500 döner).
+- **Proje dışa aktarma:** zip, Python'daki gibi çalışma dizininden değil depo kökünden (`PROJECT_EXPORT_ROOT`, varsayılan: iki üst dizin) üretilir.
+
+E-şube ortam değişkenleri (hepsi isteğe bağlı): `ADMIN_TC`, `ADMIN_PASSWORD`, `ADMIN_NAME`, `ADMIN_EMAIL`, `SEED_TEST_USER` (`false` ile test kullanıcısı açılmaz),
+`TEST_USER_TC`/`TEST_USER_PASSWORD`, `PUBLIC_BASE_URL`, `MARKET_URL`, `REQUIRE_LIVE_MARKET_FOR_TRADING`, `ALLOW_PRICE_SIMULATION`, `MAX_UPLOAD_BYTES`,
+`LOGIN_MAX_ATTEMPTS`, `LOGIN_LOCK_SECONDS`, `SMTP_HOST/PORT/USER/PASSWORD/FROM`, `RENDER_API_TOKEN`, `RENDER_SERVICE_ID`, `PARTICIPATION_FEED_URL`.

@@ -17,6 +17,11 @@ const nextConfig: NextConfig = {
       { source: '/(img|fonts)/:path*', headers: [{ key: 'Cache-Control', value: 'public, max-age=604800' }] },
     ];
   },
+  /* Yüklenen belgeler/avatar: e-şube API'sinden (oturum çerezi ile) servis edilir. */
+  async rewrites() {
+    const api = (process.env.API_URL || 'http://localhost:4000').replace(/\/+$/, '');
+    return [{ source: '/uploads/:path*', destination: `${api}/uploads/:path*` }];
+  },
   /* Eski .html adresleri yeni sayfalara gider. */
   async redirects() {
     return [

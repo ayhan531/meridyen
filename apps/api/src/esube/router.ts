@@ -1,6 +1,8 @@
 /** Yol tablosu: Python AppHandler.route_api / dispatch ile aynı sıra ve aynı eşleşme kuralları. */
+import * as fs from 'fs';
+import * as path from 'path';
 import { withConn } from './db';
-import { HttpError, isoTime, Row, now, pyInt } from './common';
+import { cfg, HttpError, isoTime, Row, now, pyInt } from './common';
 import { canViewUpload, Ctx, mimeFor, Reply } from './ctx';
 import * as U from './handlers-user';
 import * as A from './handlers-admin';
@@ -21,6 +23,12 @@ export async function serveUpload(ctx: Ctx, urlPath: string): Promise<Reply> {
     if (!(await canViewUpload(conn, user, filename))) throw new HttpError(403, 'Dosya erişim yetkisi yok');
     return conn.get('SELECT content_type, data FROM uploaded_files WHERE name=?', [filename]);
   });
+  if (cfg.uploadDir) {
+    try {
+      const onDisk = fs.readFileSync(path.join(cfg.uploadDir, path.basename(filename)));
+      return { status: 200, headers: { 'Content-Type': mimeFor(filename), 'Cache-Control': 'no-cache' }, body: onDisk };
+    } catch { /* diskte yok: veritabanına bak */ }
+  }
   if (!row) throw new HttpError(404, 'Dosya bulunamadı');
   const data: Buffer = Buffer.isBuffer(row.data) ? row.data : Buffer.from(row.data);
   return { status: 200, headers: { 'Content-Type': mimeFor(filename), 'Cache-Control': 'no-cache' }, body: data };

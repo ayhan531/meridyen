@@ -2,6 +2,8 @@
 import type { Request } from 'express';
 import sharp, { Metadata } from 'sharp';
 import { randomBytes } from 'crypto';
+import * as fs from 'fs';
+import * as path from 'path';
 import { Conn } from './db';
 import { cfg, HttpError, now, pyStr, Row } from './common';
 
@@ -294,6 +296,13 @@ export async function transcodeUploadedImage(raw: Buffer): Promise<[Buffer, stri
 }
 
 export async function storeUpload(conn: Conn, name: string, contentType: string, data: Buffer): Promise<void> {
+  if (cfg.uploadDir) {
+    try {
+      fs.mkdirSync(cfg.uploadDir, { recursive: true });
+      fs.writeFileSync(path.join(cfg.uploadDir, path.basename(name)), data);
+      return;
+    } catch { /* disk yazılamazsa veritabanına düş */ }
+  }
   await conn.run(
     'INSERT INTO uploaded_files (name, content_type, data, created_at) VALUES (?, ?, ?, ?) ON CONFLICT(name) DO UPDATE SET content_type=excluded.content_type, data=excluded.data',
     [name, contentType, data, now()],

@@ -1,7 +1,5 @@
-# Meridyen Yatırım — Render Blueprint
-# Render panelinde: New > Blueprint > bu depoyu seçin. Üç kaynak birlikte kurulur:
-#   meridyen-db  (PostgreSQL)   meridyen-api (NestJS)   meridyen-web (Next.js)
-
+# Meridyen Yatırım — Render TEK Web Service (API + web aynı serviste) + kalıcı disk.
+# Not: kalıcı disk ücretli plan (Starter ve üstü) ister; ayrıca bir Render PostgreSQL oluşturup DATABASE_URL olarak bağlayın.
 databases:
   - name: meridyen-db
     plan: free
@@ -11,23 +9,30 @@ databases:
 
 services:
   - type: web
-    name: meridyen-api
+    name: meridyen
     runtime: node
-    plan: free
+    plan: starter
     region: frankfurt
-    rootDir: apps/api
-    buildCommand: npm ci && npm run build
-    startCommand: npm start
-    healthCheckPath: /api/health
+    buildCommand: bash build.sh
+    startCommand: bash start.sh
+    healthCheckPath: /healthz
+    disk:
+      name: meridyen-data
+      mountPath: /var/data
+      sizeGB: 1
     envVars:
       - key: NODE_VERSION
         value: "22"
       - key: NODE_ENV
         value: production
+      - key: NEXT_TELEMETRY_DISABLED
+        value: "1"
       - key: DATABASE_URL
         fromDatabase:
           name: meridyen-db
           property: connectionString
+      - key: DATA_DIR
+        value: /var/data
       - key: JWT_SECRET
         generateValue: true
       - key: COOKIE_SECURE
@@ -36,15 +41,14 @@ services:
         value: "true"
       - key: SMS_MODE
         value: screen
-      # E-şube (ottoman) arka ucu — bkz. README "E-şube arka ucu"
       - key: ADMIN_TC
-        sync: false          # yönetici T.C. no (panelden girin)
+        sync: false
       - key: ADMIN_PASSWORD
-        sync: false          # yönetici şifresi (panelden girin; boşsa bilinen varsayılan kullanılır!)
+        sync: false
       - key: PUBLIC_BASE_URL
-        sync: false          # şifre yenileme e-postası bağlantıları için (ör. https://meridyen-web.onrender.com)
+        sync: false
       - key: SEED_TEST_USER
-        value: "false"       # herkese açık sitede bilinen şifreli test hesabı açılmasın
+        value: "false"
       - key: REQUIRE_LIVE_MARKET_FOR_TRADING
         value: "1"
       - key: ALLOW_PRICE_SIMULATION
@@ -53,24 +57,3 @@ services:
         sync: false
       - key: RENDER_SERVICE_ID
         sync: false
-
-  - type: web
-    name: meridyen-web
-    runtime: node
-    plan: free
-    region: frankfurt
-    rootDir: apps/web
-    buildCommand: npm ci && npm run build
-    startCommand: npm start
-    healthCheckPath: /
-    envVars:
-      - key: NODE_VERSION
-        value: "22"
-      - key: NODE_ENV
-        value: production
-      - key: NEXT_TELEMETRY_DISABLED
-        value: "1"
-      # API servisinin herkese açık adresi. Render alt alan adını farklı verirse
-      # (ör. meridyen-api-x1y2.onrender.com) panelden bu değeri güncelleyin.
-      - key: API_URL
-        value: https://meridyen-api.onrender.com

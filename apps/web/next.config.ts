@@ -20,7 +20,10 @@ const nextConfig: NextConfig = {
   /* Yüklenen belgeler/avatar: e-şube API'sinden (oturum çerezi ile) servis edilir. */
   async rewrites() {
     const api = (process.env.API_URL || 'http://localhost:4000').replace(/\/+$/, '');
-    return [{ source: '/uploads/:path*', destination: `${api}/uploads/:path*` }];
+    return [
+      { source: '/uploads/:path*', destination: `${api}/uploads/:path*` },
+      { source: '/healthz', destination: `${api}/healthz` },
+    ];
   },
   /* Eski .html adresleri yeni sayfalara gider. */
   async redirects() {

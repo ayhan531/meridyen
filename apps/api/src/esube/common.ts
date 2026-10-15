@@ -125,7 +125,9 @@ export const cfg = {
   cookieName: 'ottoman_sid',
   sessionTtl: 60 * 60 * 24 * 7,
   dataDir: process.env.DATA_DIR || path.join(process.cwd(), 'data'),
-  logoCacheDir: path.join(os.tmpdir(), 'esube-company-logos'),
+  logoCacheDir: process.env.DATA_DIR ? path.join(process.env.DATA_DIR, 'logo-cache') : path.join(os.tmpdir(), 'esube-company-logos'),
+  /** DATA_DIR (ör. Render diski) verilmişse yüklemeler diskte; yoksa veritabanında saklanır. */
+  uploadDir: process.env.DATA_DIR ? path.join(process.env.DATA_DIR, 'uploads') : '',
   marketUrl: process.env.MARKET_URL || 'https://trrealapi-market.onrender.com/latest',
   marketTimeout: envFloat('MARKET_TIMEOUT', 12),
   marketRefreshSeconds: envInt('MARKET_REFRESH_SECONDS', 12),

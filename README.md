@@ -111,3 +111,19 @@ Ottoman projesinin Python arka ucunun (`backend_server.py`, ~85 uç) davranış�
 E-şube ortam değişkenleri (hepsi isteğe bağlı): `ADMIN_TC`, `ADMIN_PASSWORD`, `ADMIN_NAME`, `ADMIN_EMAIL`, `SEED_TEST_USER` (`false` ile test kullanıcısı açılmaz),
 `TEST_USER_TC`/`TEST_USER_PASSWORD`, `PUBLIC_BASE_URL`, `MARKET_URL`, `REQUIRE_LIVE_MARKET_FOR_TRADING`, `ALLOW_PRICE_SIMULATION`, `MAX_UPLOAD_BYTES`,
 `LOGIN_MAX_ATTEMPTS`, `LOGIN_LOCK_SECONDS`, `SMTP_HOST/PORT/USER/PASSWORD/FROM`, `RENDER_API_TOKEN`, `RENDER_SERVICE_ID`, `PARTICIPATION_FEED_URL`.
+
+## Render: tek Web Service kurulumu (Blueprint olmadan)
+
+Depo kökü, **tek** Web Service olarak çalışır (API + web birlikte):
+
+| Alan | Değer |
+|---|---|
+| Runtime | Node (`NODE_VERSION=22`) |
+| Build Command | `bash build.sh` |
+| Start Command | `bash start.sh` |
+| Health Check Path | `/healthz` |
+| Disk | Mount path `/var/data` (ücretli plan gerekir) |
+
+Ortam değişkenleri: `DATABASE_URL` (Render PostgreSQL "Internal Database URL"), `DATA_DIR=/var/data`, `NODE_ENV=production`, `JWT_SECRET`,
+`COOKIE_SECURE=true`, `ADMIN_TC`, `ADMIN_PASSWORD`, `PUBLIC_BASE_URL` (servisin adresi), `SEED_TEST_USER=false`.
+`start.sh` API'yi iç porta (4000), Next.js'i Render'ın `$PORT`'una açar; `/api/*` ve `/uploads/*` iç API'ye iletilir. `DATA_DIR` verilince belgeler ve avatarlar diskte (`/var/data/uploads`) saklanır.

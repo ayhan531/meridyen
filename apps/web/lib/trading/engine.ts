@@ -3,8 +3,8 @@
  * Next.js'te /app sayfasındaki TradingApp bileşeni kabuğu çizer ve boot() ile bu motoru başlatır.
  * Hesap ve durum: lib/account.ts (NestJS API) · Fiyatlar: lib/market.ts (sunucudaki fiyat motoru).
  */
-import { COLORS, INDICES, LOGO, NEWS, NEWSFEED, STOCKS, IMG_BASE } from '../market-data';
-import { MeridyenMarket } from '../market';
+import { COLORS, INDICES, LIVE_LISTS, LOGO, NEWS, NEWSFEED, STOCKS, IMG_BASE } from '../market-data';
+import { MeridyenMarket, history as priceHistory } from '../market';
 import { Account, maskPhone, normPhone, strength } from '../account';
 
 const MeridyenAuth = { ...Account, maskPhone, normPhone, strength };
@@ -59,16 +59,11 @@ const commRate=0.001, bsmv=0.05;
 
 /* seeded series */
 function rng(seed?: any){let a=0;for(const ch of seed)a=(a*31+ch.charCodeAt(0))>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-const PER: any={'1G':{n:78,vol:.0016},'1H':{n:40,vol:.006},'1A':{n:22,vol:.014},'3A':{n:64,vol:.017},'1Y':{n:250,vol:.02},'5Y':{n:260,vol:.035}};
-function series(s?: any, per?: any){
- const st=stock(s), cfg=PER[per], r=rng(s+per), out=new Array(cfg.n);
- out[cfg.n-1]=st.p;
- for(let i=cfg.n-2;i>=0;i--){ out[i]=out[i+1]/(1+(r()-.5)*2*cfg.vol+(per==='1G'?0:0.0004)); }
- if(per==='1G'){ const k=st.o/out[0]; for(let i=0;i<cfg.n-1;i++) out[i]*=1+(k-1)*(1-i/(cfg.n-1)); }
- return out;
-}
+/* Gerçek fiyat geçmişi: sunucunun topladığı örnekler (/api/prices/history). Veri yoksa boş dizi. */
+const PER: any={'1G':{days:1},'1H':{days:7},'1A':{days:30},'3A':{days:90},'1Y':{days:365}};
+function series(s?: any, per?: any): number[] { return priceHistory(s, (PER[per]||PER['1G']).days, ()=>{ try{ drawChart(); }catch{} }).pts; }
 function sparkSVG(s?: any, cl?: any){
- const d=series(s,'1G'), min=Math.min(...d),max=Math.max(...d),W=64,H=28;
+ const d=series(s,'1G'); if(d.length<2) return ''; const min=Math.min(...d),max=Math.max(...d),W=64,H=28;
  const pts=d.map((v?: any, i?: any)=>`${(i/(d.length-1)*W).toFixed(1)},${(H-2-((v-min)/((max-min)||1))*(H-4)).toFixed(1)}`).join(' ');
  return `<svg class="spark ${cl}" viewBox="0 0 ${W} ${H}" aria-hidden="true"><polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>`;
 }
@@ -197,18 +192,10 @@ const MARKETS: any=[
  {k:'viop',    n:'VİOP',       s:'Vadeli',      b:'VİOP', c1:'#3E5C8A', c2:'#6E8FC4'},
  {k:'fx',      n:'Döviz',      s:'USD/TRY',     b:'$',    c1:'#2B6F7A', c2:'#4FA3AE', idx:'USD/TRY'},
  {k:'gold',    n:'Altın',      s:'Gram',        b:'AU',   c1:'#8A6B2B', c2:'#C9A34E', idx:'Gram Altın'},
- {k:'ipo',     n:'Halka Arzlar', s:'3 aktif',   b:'HA',   c1:'#6B4E8A', c2:'#9B7CC4'},
  {k:'euro',    n:'Euro',       s:'EUR/TRY',     b:'€',    c1:'#1F4E79', c2:'#4C84B8', idx:'EUR/TRY'},
  {k:'brent',   n:'Brent',      s:'Petrol',      b:'BRN',  c1:'#7A3E5C', c2:'#B06E8C', idx:'Brent'},
- {k:'warrant', n:'Varantlar',  s:'Kaldıraçlı',  b:'VAR',  c1:'#556B2F', c2:'#8FA857'},
  {k:'stocks',  n:'Hisseler',    s:'BIST pay',    b:'HSS',  c1:'#1E4B41', c2:'#3E7A63'},
- {k:'dividend',n:'Temettü',     s:'Takvim',      b:'TMT',  c1:'#8A6B2B', c2:'#C9A34E'},
- {k:'islamic', n:'Katılım',     s:'Faizsiz',     b:'KTL',  c1:'#2F6B4F', c2:'#5FA37E'},
- {k:'eurobond',n:'Eurobond',    s:'Sabit getiri',b:'EUB',  c1:'#3E5C8A', c2:'#6E8FC4'},
- {k:'repo',    n:'Repo',        s:'Gecelik',     b:'RPO',  c1:'#4A5568', c2:'#7B8798'},
- {k:'crypto',  n:'Kripto',      s:'Yakında',     b:'KRP',  c1:'#6B4E8A', c2:'#9B7CC4'},
  {k:'screener',n:'Tarayıcı',    s:'Filtreler',   b:'TRY',  c1:'#2B6F7A', c2:'#4FA3AE'},
- {k:'calendar',n:'Takvim',      s:'Bilanço',     b:'TKV',  c1:'#7A3E5C', c2:'#B06E8C'},
 ];
 const index=(n: any)=>INDICES.find((i: any)=>i.n===n);
 function marketTiles(){
@@ -343,74 +330,16 @@ function renderWelcome(){
    diğerleri (fon, VİOP, döviz, halka arz…) örnek listelerden gelir. */
 const MKT: any={
  news:()=>({t:'Haberler',s:'Gündem',rows:[]}),
- bist100:()=>({t:'BIST 100',s:'Endeks üyeleri · günlük değişime göre',rows:[...STOCKS].sort((a?: any, b?: any)=>b.c-a.c).map((x: any)=>({k:x.s,n:x.n,v:tl(x.p),c:x.c,sym:x.s}))}),
- bist30:()=>({t:'BIST 30',s:'En büyük 10 pay · günlük değişime göre',rows:[...STOCKS].slice(0,10).sort((a?: any, b?: any)=>b.c-a.c).map((x: any)=>({k:x.s,n:x.n,v:tl(x.p),c:x.c,sym:x.s}))}),
+ bist100:()=>({t:'BIST 100',s:'En yüksek işlem hacmi · ilk 100 pay',rows:[...STOCKS].sort((a?: any, b?: any)=>(b.volN||0)-(a.volN||0)).slice(0,100).map((x: any)=>({k:x.s,n:x.n,v:tl(x.p),c:x.c,sym:x.s}))}),
+ bist30:()=>({t:'BIST 30',s:'En yüksek işlem hacmi · ilk 30 pay',rows:[...STOCKS].sort((a?: any, b?: any)=>(b.volN||0)-(a.volN||0)).slice(0,30).map((x: any)=>({k:x.s,n:x.n,v:tl(x.p),c:x.c,sym:x.s}))}),
  stocks:()=>({t:'Hisseler',s:'Bütün paylar · alfabetik',rows:[...STOCKS].sort((a?: any, b?: any)=>a.s.localeCompare(b.s,'tr')).map((x: any)=>({k:x.s,n:x.n,v:tl(x.p),c:x.c,sym:x.s}))}),
  screener:()=>({t:'Tarayıcı',s:'Günün en çok yükselenleri',rows:[...STOCKS].sort((a?: any, b?: any)=>b.c-a.c).slice(0,10).map((x: any)=>({k:x.s,n:x.n,v:tl(x.p),c:x.c,sym:x.s}))}),
- funds:()=>({t:'Fonlar',s:'TEFAS · yılbaşından beri getiri',rows:[
-  {k:'AFA',n:'Ak Portföy Hisse Senedi Fonu',v:'₺4,8721',c:38.2},{k:'IPJ',n:'İş Portföy BIST 30 Endeks',v:'₺12,3410',c:31.7},
-  {k:'TTE',n:'TEB Portföy Teknoloji',v:'₺7,9042',c:28.4},{k:'GAF',n:'Garanti Portföy Altın Fonu',v:'₺3,1188',c:24.9},
-  {k:'YAS',n:'Yapı Kredi Serbest Fon',v:'₺1,8055',c:19.3},{k:'DPK',n:'Deniz Portföy Kısa Vadeli Borçlanma',v:'₺2,4471',c:12.1},
- ]}),
- viop:()=>({t:'VİOP',s:'Vadeli işlem sözleşmeleri · yakın vade',rows:[
-  {k:'F_XU0301226',n:'BIST 30 Endeks Vadeli · Aralık',v:'14.812,25',c:1.42},{k:'F_USDTRY1226',n:'Dolar/TL Vadeli · Aralık',v:'44,128',c:0.31},
-  {k:'F_XAUTRY1226',n:'Gram Altın Vadeli · Aralık',v:'5.402,00',c:0.64},{k:'O_XU030E1226',n:'BIST 30 Opsiyon · Aralık',v:'318,40',c:-0.85},
- ]}),
- fx:()=>({t:'Döviz',s:'Serbest piyasa kurları',rows:[
-  {k:'USD/TRY',n:'Amerikan Doları',v:'42,81',c:0.06},{k:'EUR/TRY',n:'Euro',v:'49,12',c:-0.11},
-  {k:'GBP/TRY',n:'İngiliz Sterlini',v:'57,44',c:0.18},{k:'CHF/TRY',n:'İsviçre Frangı',v:'52,90',c:0.09},
-  {k:'JPY/TRY',n:'Japon Yeni (100)',v:'28,17',c:-0.24},{k:'EUR/USD',n:'Euro / Dolar',v:'1,1473',c:-0.17},
- ]}),
+ funds:()=>({t:'Fonlar',s:'Canlı fon fiyatları',rows:LIVE_LISTS.fund.map((q: any)=>({k:q[0],n:q[1],v:'₺'+fmt(q[2],4),c:q[3]}))}),
+ viop:()=>({t:'VİOP',s:'Vadeli işlem sözleşmeleri',rows:LIVE_LISTS.viop.map((q: any)=>({k:q[0],n:q[1],v:fmt(q[2]),c:q[3]}))}),
+ fx:()=>({t:'Döviz',s:'Canlı kurlar',rows:LIVE_LISTS.fx.map((q: any)=>({k:q[0],n:q[1],v:fmt(q[2],4),c:q[3]}))}),
  euro:()=>MKT.fx(),
- gold:()=>({t:'Altın ve değerli maden',s:'Kapalıçarşı ve ons fiyatları',rows:[
-  {k:'Gram Altın',n:'24 ayar · TL',v:'5.284,40',c:0.58},{k:'Çeyrek Altın',n:'Yeni çeyrek',v:'8.740,00',c:0.52},
-  {k:'Cumhuriyet',n:'Ziynet',v:'35.900,00',c:0.47},{k:'Ons Altın',n:'XAU/USD',v:'$3.842,60',c:0.31},
-  {k:'Gram Gümüş',n:'XAG · TL',v:'62,18',c:-0.44},{k:'Platin',n:'XPT/USD',v:'$1.128,00',c:0.12},
- ]}),
- brent:()=>({t:'Emtia',s:'Enerji ve sanayi metalleri',rows:[
-  {k:'Brent',n:'Ham petrol · varil',v:'$71,40',c:-0.72},{k:'WTI',n:'Ham petrol · varil',v:'$67,85',c:-0.66},
-  {k:'Doğal gaz',n:'Henry Hub · MMBtu',v:'$3,12',c:1.24},{k:'Bakır',n:'LME · ton',v:'$9.840',c:0.38},
-  {k:'Buğday',n:'CBOT · kile',v:'$5,64',c:-0.21},
- ]}),
- ipo:()=>({t:'Halka Arzlar',s:'Talep toplama takvimi',rows:[
-  {k:'ANKAY',n:'Ankara Yenilenebilir · 6-8 Eki · ₺18,50',v:'3 gün',c:null,note:'Talep toplanıyor'},
-  {k:'DENTS',n:'Dent Sağlık · 13-15 Eki · ₺24,00',v:'yakında',c:null,note:'Onay bekliyor'},
-  {k:'MRTLJ',n:'Mert Lojistik · 20-22 Eki · ₺11,20',v:'yakında',c:null,note:'İzahname yayımlandı'},
- ]}),
- dividend:()=>({t:'Temettü',s:'Yaklaşan nakit temettü ödemeleri',rows:[
-  {k:'TUPRS',n:'Tüpraş · 2 Eki · brüt ₺12,40',v:'%7,9',c:null,note:'verim',sym:'TUPRS'},
-  {k:'FROTO',n:'Ford Otosan · 9 Eki · brüt ₺48,00',v:'%4,1',c:null,note:'verim',sym:'FROTO'},
-  {k:'BIMAS',n:'BİM · 16 Eki · brüt ₺9,10',v:'%1,8',c:null,note:'verim',sym:'BIMAS'},
-  {k:'AKBNK',n:'Akbank · 23 Eki · brüt ₺3,25',v:'%5,2',c:null,note:'verim',sym:'AKBNK'},
- ]}),
- islamic:()=>({t:'Katılım',s:'Katılım endeksine uygun paylar',rows:[...STOCKS].filter((x: any)=>['ASELS','THYAO','TUPRS','KCHOL','EREGL','SISE'].includes(x.s)).map((x: any)=>({k:x.s,n:x.n,v:tl(x.p),c:x.c,sym:x.s}))}),
- eurobond:()=>({t:'Eurobond',s:'Getiriye göre · TCMB ve şirket ihraçları',rows:[
-  {k:'TURKEY 2030',n:'T.C. Hazine · USD',v:'%7,12',c:null,note:'getiri'},
-  {k:'TURKEY 2034',n:'T.C. Hazine · USD',v:'%7,68',c:null,note:'getiri'},
-  {k:'AKBNK 2029',n:'Akbank · USD',v:'%8,05',c:null,note:'getiri'},
-  {k:'TUPRS 2028',n:'Tüpraş · USD',v:'%7,94',c:null,note:'getiri'},
- ]}),
- repo:()=>({t:'Repo ve para piyasası',s:'Gecelik oranlar',rows:[
-  {k:'TLREF',n:'Gecelik referans oran',v:'%42,15',c:null,note:'yıllık'},
-  {k:'BIST Repo O/N',n:'Borsa para piyasası',v:'%42,50',c:null,note:'yıllık'},
-  {k:'TCMB Politika',n:'Bir hafta vadeli repo',v:'%43,00',c:null,note:'yıllık'},
-  {k:'Mevduat 32 gün',n:'Ortalama banka faizi',v:'%41,20',c:null,note:'yıllık'},
- ]}),
- crypto:()=>({t:'Kripto',s:'Yakında · örnek fiyatlar',rows:[
-  {k:'BTC/USDT',n:'Bitcoin',v:'$112.480',c:1.86},{k:'ETH/USDT',n:'Ethereum',v:'$4.128',c:2.43},
-  {k:'SOL/USDT',n:'Solana',v:'$214,60',c:-1.12},{k:'AVAX/USDT',n:'Avalanche',v:'$38,22',c:0.74},
- ]}),
- warrant:()=>({t:'Varantlar',s:'Kaldıraçlı ürünler · dayanak varlığa göre',rows:[
-  {k:'THYAO ALIM',n:'Vade 19 Ara · kullanım ₺330',v:'₺1,84',c:6.4},
-  {k:'XU030 ALIM',n:'Vade 19 Ara · kullanım 15.000',v:'₺0,96',c:4.1},
-  {k:'ASELS SATIM',n:'Vade 21 Kas · kullanım ₺110',v:'₺0,42',c:-3.8},
- ]}),
- calendar:()=>({t:'Takvim',s:'Bilanço ve veri gündemi',rows:[
-  {k:'2 Eki',n:'TÜİK · Eylül enflasyonu',v:'10:00',c:null},
-  {k:'9 Eki',n:'THYAO · 3. çeyrek trafik verisi',v:'18:30',c:null,sym:'THYAO'},
-  {k:'23 Eki',n:'TCMB · Para Politikası Kurulu',v:'14:00',c:null},
-  {k:'30 Eki',n:'ASELS · 3. çeyrek bilanço',v:'kapanış',c:null,sym:'ASELS'},
- ]}),
+ gold:()=>({t:'Altın',s:'Canlı gram altın',rows:INDICES.filter((i: any)=>i.n==='Gram Altın'&&i._n!=null).map((i: any)=>({k:i.n,n:'24 ayar · TL',v:i.v,c:i.c}))}),
+ brent:()=>({t:'Brent',s:'Canlı ham petrol',rows:INDICES.filter((i: any)=>i.n==='Brent'&&i._n!=null).map((i: any)=>({k:i.n,n:'Ham petrol · varil',v:i.v,c:i.c}))}),
 };
 
 /* Kategori listesi ekranı (Piyasalar > kutucuk). */
@@ -522,10 +451,7 @@ function rowStock(st?: any){
 
 function renderDetail(){
  const st=stock(state.detail), h=holding(st.s);
- const d=series(st.s,'1G'), lo=Math.min(...d), hi=Math.max(...d), pos=((st.p-st.low52)/(st.high52-st.low52))*100;
- const r=rng(st.s+'depth'), tk=tick(st); const bids=[],asks=[];
- for(let i=0;i<5;i++){bids.push({p:st.p-tk*(i+1),q:Math.round(800+r()*9000)});asks.push({p:st.p+tk*i,q:Math.round(800+r()*9000)})}
- const mq=Math.max(...bids.map((b: any)=>b.q),...asks.map((a: any)=>a.q));
+ const lo=st.lo??st.p, hi=st.hi??st.p, tk=tick(st);
  const upl=h?h.q*(st.p-h.cost):0;
  return `<section class="screen">
   <div class="sub"><button class="back" data-act="back" aria-label="Geri">${ic.back}</button><h2>Hisse Detayı</h2><button class="iconbtn" data-act="alarm" data-s="${st.s}" aria-label="Fiyat alarmı kur">${ic.bell}${(state.alarms||[]).some((x: any)=>x.s===st.s&&!x.done)?'<span class="dot"></span>':''}</button><button class="iconbtn ${inWatch(st.s)?'starred':''}" data-act="watchToggle" data-s="${st.s}" aria-pressed="${inWatch(st.s)}" aria-label="${inWatch(st.s)?'Takip listesinden çıkar':'Takip listesine ekle'}">${inWatch(st.s)?ic.starF:ic.star}</button></div>
@@ -542,17 +468,7 @@ function renderDetail(){
    <div class="sec" style="margin:0 0 6px"><h3>İstatistikler</h3></div>
    <div class="stats num">
     <div><span>Açılış</span><b>${tl(st.o)}</b></div><div><span>Önceki Kapanış</span><b>${tl(st.pc)}</b></div>
-    <div><span>Hacim</span><b>${st.vol}</b></div><div><span>Piyasa Değeri</span><b>${st.mc}</b></div>
-    <div><span>F/K</span><b>${st.pe}</b></div><div><span>PD/DD</span><b>${st.pb}</b></div>
-    <div><span>Temettü Verimi</span><b>${st.div}</b></div><div><span>Fiyat Adımı</span><b>${tl(tk)}</b></div>
-   </div>
-   <div class="range num"><div class="lbl" style="margin-top:12px"><span>52H Düşük <b>${tl(st.low52)}</b></span><span>52H Yüksek <b>${tl(st.high52)}</b></span></div><div class="bar"><i style="left:${pos.toFixed(1)}%"></i></div></div>
-  </div>
-  <div class="card">
-   <div class="sec" style="margin:0 0 10px"><h3>Derinlik</h3><span class="chip neutral">5 Kademe</span></div>
-   <div class="depth num">
-    <div class="col"><div class="h"><span>Adet</span><span>Alış</span></div>${bids.map((b: any)=>`<div class="r bid"><i style="width:${(b.q/mq*100).toFixed(0)}%"></i><span>${fmt(b.q,0)}</span><b class="up">${fmt(b.p)}</b></div>`).join('')}</div>
-    <div class="col"><div class="h"><span>Satış</span><span>Adet</span></div>${asks.map((a: any)=>`<div class="r ask"><i style="width:${(a.q/mq*100).toFixed(0)}%"></i><b class="down">${fmt(a.p)}</b><span>${fmt(a.q,0)}</span></div>`).join('')}</div>
+    <div><span>Hacim</span><b>${st.vol}</b></div><div><span>Fiyat Adımı</span><b>${tl(tk)}</b></div>
    </div>
   </div>
   <div class="tradebar">
@@ -566,6 +482,7 @@ function drawChart(){
  const cv=$id('chart'); if(!cv) return;
  const onTicket=state.screen==='ticket';
  const st=stock(onTicket?state.ticket.s:state.detail), d=series(st.s,state.period);
+ if(d.length<2){ const c0=cv.getContext('2d'); const W0=cv.clientWidth||360, H0=cv.clientHeight||190; cv.width=W0; cv.height=H0; c0.clearRect(0,0,W0,H0); c0.fillStyle=getComputedStyle(document.documentElement).getPropertyValue('--muted').trim()||'#888'; c0.font='600 12px Manrope, system-ui'; c0.textAlign='center'; c0.fillText('Bu dönem için gerçek fiyat verisi toplanıyor…',W0/2,H0/2); return; }
  const dpr=window.devicePixelRatio||1, W=cv.clientWidth||360, H=cv.clientHeight||190; cv.width=W*dpr; cv.height=H*dpr;
  const ctx=cv.getContext('2d'); ctx.scale(dpr,dpr);
  const css=getComputedStyle(document.documentElement);
@@ -578,12 +495,12 @@ function drawChart(){
  ctx.font='600 11px Manrope, system-ui'; ctx.fillStyle=mutC; ctx.textAlign='left';
  [max, min+span/2, min].forEach((v: any)=>{ctx.beginPath();ctx.moveTo(padL,y(v));ctx.lineTo(W-padR,y(v));ctx.stroke();ctx.fillText(fmt(v),W-padR+8,y(v)+4)});
  ctx.setLineDash([]);
- if(state.period==='1G'){ ctx.strokeStyle=mutC; ctx.setLineDash([2,4]); ctx.beginPath(); ctx.moveTo(padL,y(st.pc)); ctx.lineTo(W-padR,y(st.pc)); ctx.stroke(); ctx.setLineDash([]); }
+ 
  const grad=ctx.createLinearGradient(0,padT,0,H-padB); grad.addColorStop(0,col+'55'); grad.addColorStop(1,col+'00');
  ctx.beginPath(); ctx.moveTo(x(0),H-padB); d.forEach((v?: any, i?: any)=>ctx.lineTo(x(i),y(v))); ctx.lineTo(x(d.length-1),H-padB); ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
  ctx.beginPath(); d.forEach((v?: any, i?: any)=>i?ctx.lineTo(x(i),y(v)):ctx.moveTo(x(i),y(v))); ctx.strokeStyle=col; ctx.lineWidth=2.2; ctx.lineJoin='round'; ctx.stroke();
  ctx.beginPath(); ctx.arc(x(d.length-1),y(last),4.5,0,7); ctx.fillStyle=col; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=cardC; ctx.stroke();
- const labels: any=({'1G':['10:00','12:00','14:00','16:00','18:00'],'1H':['Pzt','Sal','Çar','Per','Cum'],'1A':['22 Ağu','1 Eyl','10 Eyl','20 Eyl'],'3A':['Haz','Tem','Ağu','Eyl'],'1Y':['Eyl 25','Ara','Mar','Haz','Eyl 26'],'5Y':['2021','2022','2023','2024','2025','2026']} as any)[state.period];
+ const tsx=priceHistory(st.s,(PER[state.period]||PER['1G']).days).ts; const fm=(t: number)=>{const dt=new Date(t*1000);return state.period==='1G'?dt.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'}):dt.toLocaleDateString('tr-TR',{day:'numeric',month:'short'});}; const labels: any=tsx.length>1?[0,.5,1].map((q: number)=>fm(tsx[Math.min(tsx.length-1,Math.round(q*(tsx.length-1)))])):[];
  ctx.fillStyle=mutC;
  labels.forEach((l?: any, i?: any)=>{const xx=padL+i/(labels.length-1)*(W-padL-padR); ctx.textAlign=i===0?'left':i===labels.length-1?'right':'center'; ctx.fillText(l,xx,H-6)});
 }
@@ -1390,15 +1307,15 @@ function checkAlarms() {
 /* ---------- haberler ---------- */
 function newsFeed() {
   const all = [...NEWS.default.map((n: any) => ({ ...n, tag: 'Gündem' })), ...Object.keys(NEWS).filter((k: any) => k !== 'default').flatMap((k: any) => NEWS[k].map((n: any) => ({ ...n, tag: k }))),
-    ...NEWSFEED.filter((x: any) => !NEWS.default.some((n: any) => n.t === x.t) && !(NEWS.THYAO || []).some((n: any) => n.t === x.t)).map((x: any) => ({ t: x.t, s: x.s + ' · bugün', tag: 'Gündem' }))];
+    ...NEWSFEED.filter((x: any) => !NEWS.default.some((n: any) => n.t === x.t) && !(NEWS.THYAO || []).some((n: any) => n.t === x.t)).map((x: any) => ({ t: x.t, s: x.s, tag: 'Gündem', url: x.url, body: x.body }))];
   return all.map((n?: any, i?: any) => ({ ...n, i, src: n.s.split(' · ')[0] })).filter((n: any) => !state.newsOff.includes(n.src));
 }
 function openArticle(i?: any) {
   const all = newsFeed(), n = all.find((x: any) => x.i === +i); if (!n) return;
   const st = stock(n.tag);
   sheet(`<div class="art"><span class="chip neutral">${esc(n.tag)}</span><h3>${esc(n.t)}</h3><div class="sub2">${esc(n.s)}</div>
-   <p>${esc(n.t)}. Piyasa katılımcıları gelişmeyi gün içinde yakından izledi; işlem hacmi önceki günlerin ortalamasına yakın seyretti.</p>
-   <p>Analistler, kısa vadede fiyatlamaların küresel risk iştahı ve yurt içi veri akışına bağlı kalacağını belirtiyor. Haftanın geri kalanında açıklanacak veriler yön arayışında belirleyici olabilir.</p>
+   <p>${esc(n.body||'')}</p>
+   ${n.url?`<p><a href="${esc(n.url)}" target="_blank" rel="noopener noreferrer">Haberin tamamı için kaynağa git</a></p>`:''}
    <p class="note">Yatırım tavsiyesi değildir.</p></div>
    <div class="acts">${st ? `<button class="btn ghost" data-act="detailSheet" data-s="${st.s}">${st.s} sayfası</button>` : ''}<button class="btn primary" data-act="closeSheet">Kapat</button></div>`, 'Haber', 'tall');
 }

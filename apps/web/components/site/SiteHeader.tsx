@@ -37,7 +37,7 @@ export default function SiteHeader() {
       <div className="wrap">
         <a className="brand" href="/" aria-label="Meridyen Yatırım ana sayfa"><span className="logo">M</span><span><b>Meridyen Yatırım</b><small>Borsa İstanbul işlem platformu</small></span></a>
         <nav className={`site-nav${open ? ' open' : ''}`} id="siteNav" aria-label="Sayfa bölümleri">
-          {[['#piyasalar', 'Piyasalar'], ['#uygulama', 'Uygulama'], ['#maliyet', 'Maliyet'], ['#sss', 'Sık sorulanlar']].map(([h, t]) => (
+          {[['/#piyasalar', 'Piyasalar'], ['/hizmetler', 'Hizmetler'], ['/ucretler', 'Ücretler'], ['/sss', 'SSS'], ['/iletisim', 'İletişim']].map(([h, t]) => (
             <a key={h} href={h} onClick={() => setOpen(false)}>{t}</a>
           ))}
         </nav>

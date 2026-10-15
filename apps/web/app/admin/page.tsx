@@ -31,6 +31,9 @@ const TABS: Tab[] = [
   { key: 'tx', label: 'İşlemler', path: '/admin/transactions', pick: 'transactions' },
   { key: 'pos', label: 'Pozisyonlar', path: '/admin/positions', pick: 'positions' },
   { key: 'prices', label: 'Fiyatlar', path: '/admin/prices', pick: 'prices', q: true },
+  { key: 't2', label: 'T+2 Takas', path: '/admin/t2-settlements', pick: 't2_settlements' },
+  { key: 'balances', label: 'Bakiyeler', path: '/admin/user-balances', pick: 'balances' },
+  { key: 'reports', label: 'Raporlar', path: '/admin/reports', pick: 'reports' },
   { key: 'settings', label: 'Ayarlar', path: '/admin/system-settings', pick: 'settings' },
   { key: 'msgs', label: 'Mesajlar', path: '/admin/contact-messages', pick: 'messages' },
   { key: 'audit', label: 'Denetim', path: '/admin/audit', pick: 'audit', q: true },
@@ -113,6 +116,7 @@ export default function AdminPage() {
     if (tab === 'orders' && r.status === 'pending') return [B('Onayla', () => act(`/admin/orders/${id}/approve`, {}, 'Emir işlendi')), B('Reddet', () => { const reason = ask('Red gerekçesi'); if (reason !== null) void act(`/admin/orders/${id}/reject`, { reason }, 'Emir reddedildi'); }, 'warn')];
     if (tab === 'money' && r.status === 'pending') return [B('Onayla', () => act(`/admin/money/${id}/approve`, {}, 'Talep onaylandı')), B('Reddet', () => { const reason = ask('Red gerekçesi'); if (reason !== null) void act(`/admin/money/${id}/reject`, { reason }, 'Talep reddedildi'); }, 'warn')];
     if (tab === 'docs') return [B('Onayla', () => act(`/admin/documents/${id}/approve`, {}, 'Belge onaylandı')), B('Reddet', () => { const note = ask('Gerekçe'); if (note !== null) void act(`/admin/documents/${id}/reject`, { note }, 'Belge reddedildi'); }, 'warn')];
+    if (tab === 't2') return [B('Sil', () => act(`/admin/t2-settlements/${id}/delete`, {}, 'Silindi', 'Takas kaydı silinsin mi?'), 'danger')];
     if (tab === 'bank') return [B('Aç/Kapat', () => act(`/admin/bank-accounts/${id}`, { action: 'toggle' }, 'Güncellendi')), B('Sil', () => act(`/admin/bank-accounts/${id}`, { action: 'delete' }, 'Silindi', 'Hesap silinsin mi?'), 'danger')];
     if (tab === 'prices') return [B('Elle fiyat', () => { const p = ask(`${r.symbol} fiyatı (boş = beslemeye dön)`, ''); if (p === null) return; void act('/admin/prices', { symbol: r.symbol, price: p, change_pct: p ? ask('Değişim % (boş olabilir)', '') || '' : '' }, 'Fiyat güncellendi'); })];
     return [];
@@ -158,6 +162,7 @@ export default function AdminPage() {
       {tab === 'summary' && data && !Array.isArray(data) && (
         <div className="grid">{Object.entries(data).map(([k, v]) => <div className="stat" key={k}><span>{k.replace(/_/g, ' ')}</span><b>{typeof v === 'number' && /total/.test(k) ? money(v) : String(v)}</b></div>)}</div>
       )}
+      {tab === 'reports' && data && !Array.isArray(data) && Object.entries(data).map(([k, v]) => <details open key={k} className="card" style={{ marginBottom: 10, padding: 12 }}><summary style={{ fontWeight: 700, cursor: 'pointer' }}>{k.replace(/_/g, ' ')}</summary><pre style={{ overflow: 'auto', fontSize: 12, margin: '8px 0 0' }}>{JSON.stringify(v, null, 1)}</pre></details>)}
       {tab === 'settings' && data && !Array.isArray(data) && <Settings data={data} onSave={(s) => act('/admin/system-settings', s, 'Ayarlar kaydedildi')} />}
       {tab === 'prices' && raw && <p className="sub">Besleme: {raw.feed_enabled ? 'açık' : 'durdurulmuş'} · {raw.total} enstrüman · {raw.manual_count} elle fiyat</p>}
 

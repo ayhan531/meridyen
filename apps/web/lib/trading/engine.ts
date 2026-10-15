@@ -38,6 +38,11 @@ const color=(s: any)=>COLORS[STOCKS.findIndex((x: any)=>x.s===s)%COLORS.length];
 
 /* Hisse rozeti: logo varsa logo, yoksa renkli baş harf. */
 function av(sym?: any, cls?: any){ const L=LOGO[sym]; const c=cls||'avatar'; return L?'<img class="'+c+' lgimg" src="'+L+'" alt="'+sym+'">':'<div class="'+c+'" style="background:'+color(sym)+'">'+sym.slice(0,4)+'</div>'; }
+/* Borsa İstanbul pay piyasası seansı: hafta içi 10:00–18:00 (İstanbul saati). Kapalıyken yalnızca limit emir verilir. */
+function bistOpen(){
+ const p: any={}; new Intl.DateTimeFormat('en-GB',{timeZone:'Europe/Istanbul',weekday:'short',hour:'2-digit',minute:'2-digit',hour12:false}).formatToParts(new Date()).forEach((x: any)=>p[x.type]=x.value);
+ const mins=(+p.hour%24)*60+ +p.minute; return !['Sat','Sun'].includes(p.weekday) && mins>=600 && mins<1080;
+}
 const typeName=(t: any)=>t==='market'?'Piyasa':t==='limit'?'Limit':'Stop';
 const commRate=0.001, bsmv=0.05;
 
@@ -116,7 +121,7 @@ function go(screen?: any, opts: any = {}){
  if(needsAuth(screen) && !state.auth.in){ openLogin(screen,opts); return; }   // işlem bölümlerine girişsiz geçilmez
  if(opts.push!==false && screen!==state.screen) state.nav.push(state.screen);
  // Al · Sat ekranına her girişte emir tipi Piyasa'ya döner; limit seçimi o oturumda kalır.
- if(screen==='ticket' && state.screen!=='ticket'){ state.ticket.type='market'; state.ticket.pct=null; state.ticket.qty=0; state.ticket.price=null; }   // örnek rakam kalmasın
+ if(screen==='ticket' && state.screen!=='ticket'){ state.ticket.type=bistOpen()?'market':'limit'; state.ticket.pct=null; state.ticket.qty=0; state.ticket.price=null; }   // örnek rakam kalmasın
  state.screen=screen; Object.assign(state,opts.set||{});
  render(); window.scrollTo({top:0});
 }
@@ -336,6 +341,7 @@ function renderMkt(){
    <div class="t"><b>${d.t}</b><span>${d.s}</span></div>
    <span class="logo2" style="background:linear-gradient(135deg,${m.c1},${m.c2})">${m.b}</span>
   </div>
+  ${(state.mkt==='fx'||state.mkt==='euro')?`<button class="btn primary block" data-act="fxconv" style="margin-bottom:12px">Döviz çevirici</button>`:''}
   <div class="card"><div class="list">${d.rows.map((r: any)=>`<button class="rowitem" data-act="${r.sym?'detail':'inst'}" data-s="${r.sym||''}" data-k="${esc(r.k)}">
    <div class="avatar" style="background:${r.sym?color(r.sym):'var(--g700)'}">${r.k.slice(0,4)}</div>
    <div class="t"><b>${r.k}</b><span>${r.n}</span></div>
@@ -530,7 +536,7 @@ function renderTicket(){
 
   <div class="tsheet">
    <div class="field">
-    <div class="seg small">${[['limit','Limit'],['market','Piyasa']].map(([k,l]: any)=>`<button data-act="ttype" data-v="${k}" class="${t.type===k?'active':''}">${l}</button>`).join('')}</div>
+    <div class="seg small">${[['limit','Limit'],['market','Piyasa']].map(([k,l]: any)=>`<button data-act="ttype" data-v="${k}" class="${t.type===k?'active':''}" ${k==='market'&&!bistOpen()?'aria-disabled="true" title="Seans kapalı (10:00–18:00)" style="opacity:.45"':''}>${l}</button>`).join('')}</div>
    </div>
 
    ${t.type==='market'?`
@@ -677,7 +683,7 @@ function renderProfile(){
  const me: any=MeridyenAuth.getUser(state.auth.no)||{};
  return `<section class="screen">
   <button class="card profcard" data-act="personal" aria-label="Kişisel bilgiler">
-   <span class="big">${esc(initials(acc.user))}</span>
+   <span class="big">${me.avatar ? `<img src="${esc(me.avatar)}" alt="" style="width:100%;height:100%;border-radius:50%;object-fit:cover">` : esc(initials(acc.user))}</span>
    <b>${esc(acc.user)}</b>
    <span class="mno">Müşteri No: ${esc(acc.no)}</span>
    ${ic.chev}
@@ -704,6 +710,7 @@ function renderProfile(){
   <div class="slabel">Hesap İşlemleri</div>
   <div class="card"><div class="setlist">
    ${row(ic.user,'Kişisel bilgiler','Kimlik ve iletişim bilgileriniz','personal')}
+   ${row(ic.user,'Profil fotoğrafı','Fotoğrafınızı yükleyin veya değiştirin','avatar')}
    ${row(ic.shield,'Güvenlik','Şifrenizi değiştirin','security')}
    ${row(ic.checkS,'Kimlik Doğrulama',esc(me.statusLabel||'—')+(me.status==='approved'?'':' · belge yükleyin'),'kyc')}
    ${row(ic.bank,'Banka hesaplarım','Para yatırma ve çekme işlemleri için hesaplarınız','banks')}
@@ -817,7 +824,7 @@ function tradeHTML(){
    <button data-act="tside" data-v="sell" class="${!isBuy?'active sell':''}">Sat</button>
   </div>
   <div class="field"><label>Emir Tipi</label>
-   <div class="seg small">${[['limit','Limit'],['market','Piyasa']].map(([k,l]: any)=>`<button data-act="ttype" data-v="${k}" class="${t.type===k?'active':''}">${l}</button>`).join('')}</div>
+   <div class="seg small">${[['limit','Limit'],['market','Piyasa']].map(([k,l]: any)=>`<button data-act="ttype" data-v="${k}" class="${t.type===k?'active':''}" ${k==='market'&&!bistOpen()?'aria-disabled="true" title="Seans kapalı (10:00–18:00)" style="opacity:.45"':''}>${l}</button>`).join('')}</div>
   </div>
   ${t.type==='market'
    ?`<div class="field"><label><span>Tutar (TL)</span><b class="num">Piyasa fiyatı ${tl(st.p)}</b></label>
@@ -948,7 +955,7 @@ async function syncServer(): Promise<boolean>{
   });
   (d.money_requests||[]).filter((m: any)=>m.status==='pending'||m.status==='rejected'||m.status==='cancelled').forEach((m: any)=>{
    const dep=m.request_type==='deposit';
-   L.push({id:'m'+m.id,ts:m.created_at*1000,type:dep?'deposit':'withdraw',title:dep?'Para yatırma talebi':'Para çekme talebi',sub:m.transfer_code||'',amount:dep?Number(m.amount):-Number(m.amount),status:m.status_label||'Bekliyor'});
+   L.push({id:'m'+m.id,ts:m.created_at*1000,type:dep?'deposit':'withdraw',title:dep?'Para yatırma talebi':'Para çekme talebi',sub:m.transfer_code||'',amount:dep?Number(m.amount):-Number(m.amount),status:m.status_label||'Bekliyor',mid:m.status==='pending'&&m.request_type==='withdraw'?m.id:0});
   });
   (d.orders||[]).filter((o: any)=>o.status==='pending'&&o.side==='buy').forEach((o: any)=>{
    L.push({id:'o'+o.id,ts:o.created_at*1000,type:'block',title:`${o.symbol} alış emri teminatı`,sub:`${fmt(o.quantity,0)} adet · ${tl(o.limit_price)}`,amount:-Number(o.total),status:'Bekliyor'});
@@ -973,6 +980,7 @@ async function submitOrder(){
  const u: any=MeridyenAuth.current();
  if(u && u.role!=='admin' && u.status!=='approved'){ closeSheet(); openKyc(); return; }
  const {t,px}=ticketCalc();
+ if(t.type==='market'&&!bistOpen()){ closeSheet(); toast('Piyasa kapalı (10:00–18:00). Sadece limit emir verebilirsiniz.'); return; }
  if(t.type==='stop'){ closeSheet(); toast('Stop emri desteklenmiyor; Limit ya da Piyasa seçin'); return; }
  submitting=true;
  try{
@@ -1022,7 +1030,7 @@ function bind(root: any = main){
    case 'ticket': Object.assign(state.ticket,{s:a.s,side:a.side,price:null,qty:0,pct:null}); go('ticket'); break;
    case 'tsym': Object.assign(state.ticket,{s:a.s,price:null,pct:null}); state.ticketQuery=''; render(); break;
    case 'tside': state.ticket.side=a.v; state.ticket.pct=null; if(a.v==='sell'&&!holding(state.ticket.s)) toast('Bu hissede pozisyonunuz yok'); refresh(); break;
-   case 'ttype': state.ticket.type=a.v; refresh(); break;   // fiyat kutusu boş kalır, kullanıcı girer
+   case 'ttype': if(a.v==='market'&&!bistOpen()){ toast('Piyasa kapalı (10:00–18:00). Sadece limit emir verebilirsiniz.'); break; } state.ticket.type=a.v; refresh(); break;   // fiyat kutusu boş kalır, kullanıcı girer
    case 'ttif': state.ticket.tif=a.v; refresh(); break;
    case 'tprice': {const st=stock(state.ticket.s), tk=tick(st), base=state.ticket.price>0?state.ticket.price:st.p; state.ticket.price=Math.max(tk,+(base+tk*(+a.d)).toFixed(2)); refresh(); break;}
    case 'tqty': state.ticket.qty=Math.max(1,state.ticket.qty+(+a.d)); state.ticket.pct=null; refresh(); break;
@@ -1169,20 +1177,33 @@ function addLedger(e?: any) { e.id = e.id || uid('L'); e.ts = e.ts || nowTs(); s
 const LTYPE: any = { deposit: ['Yatırma', 'up'], withdraw: ['Çekme', 'down'], buy: ['Alış', 'down'], sell: ['Satış', 'up'], block: ['Teminat', 'warn'], refund: ['İade', 'up'], ipo: ['Halka arz', 'warn'] };
 function ledgerRow(e?: any) {
   const pos = e.amount >= 0;
-  return `<div class="baltx"><span class="lic ${LTYPE[e.type] ? LTYPE[e.type][1] : ''}">${e.type === 'deposit' || e.type === 'refund' || e.type === 'sell' ? ic.down : ic.up}</span><div class="t"><b>${esc(e.title)}</b><span>${dtstr(e.ts)}${e.sub ? ' · ' + esc(e.sub) : ''} · <i class="${e.status === 'İptal' ? 'no' : e.status === 'Bekliyor' ? 'wait' : 'ok'}">${esc(e.status)}</i></span></div><b class="num ${pos ? 'accent' : ''}">${(pos ? '+' : '−') + tl(Math.abs(e.amount))}</b></div>`;
+  return `<div class="baltx"><span class="lic ${LTYPE[e.type] ? LTYPE[e.type][1] : ''}">${e.type === 'deposit' || e.type === 'refund' || e.type === 'sell' ? ic.down : ic.up}</span><div class="t"><b>${esc(e.title)}</b><span>${dtstr(e.ts)}${e.sub ? ' · ' + esc(e.sub) : ''} · <i class="${e.status === 'İptal' ? 'no' : e.status === 'Bekliyor' ? 'wait' : 'ok'}">${esc(e.status)}</i></span>${e.mid ? `<button class="lnk" data-act="mCancel" data-id="${e.mid}">Talebi iptal et</button>` : ''}</div><b class="num ${pos ? 'accent' : ''}">${(pos ? '+' : '−') + tl(Math.abs(e.amount))}</b></div>`;
 }
 function ledgerRows(n?: any) { const l = (state.ledger || []).slice(0, n); return l.length ? l.map(ledgerRow).join('') : '<div class="empty">Henüz hesap hareketi yok.</div>'; }
+let lq = '', ld1 = '', ld2 = '';
+function ledgerList(f: any) {
+  const match = (e: any) => f === 'all' || (f === 'money' && (e.type === 'deposit' || e.type === 'withdraw')) || (f === 'trade' && (e.type === 'buy' || e.type === 'sell')) || (f === 'other' && !['deposit', 'withdraw', 'buy', 'sell'].includes(e.type));
+  const q = lq.trim().toLocaleLowerCase('tr'), t1 = ld1 ? Date.parse(ld1 + 'T00:00:00') : 0, t2 = ld2 ? Date.parse(ld2 + 'T23:59:59') : Infinity;
+  return state.ledger.filter((e: any) => match(e) && e.ts >= t1 && e.ts <= t2 && (!q || (e.title + ' ' + (e.sub || '')).toLocaleLowerCase('tr').includes(q)));
+}
+function ledgerBody(f: any) {
+  const list = ledgerList(f);
+  const inSum = list.filter((e: any) => e.amount > 0).reduce((a?: any, e?: any) => a + e.amount, 0), outSum = list.filter((e: any) => e.amount < 0).reduce((a?: any, e?: any) => a - e.amount, 0);
+  return `<div class="lsum num"><div><span>Giriş</span><b class="up">+${tl(inSum)}</b></div><div><span>Çıkış</span><b class="down">−${tl(outSum)}</b></div></div>
+   <div class="setlist">${list.length ? list.map(ledgerRow).join('') : '<div class="empty">İşlem bulunamadı. Arama veya tarih filtresini değiştirebilirsiniz.</div>'}</div>`;
+}
 function openLedger(f?: any) {
   f = f || 'all';
   const F = [['all', 'Tümü'], ['money', 'Para'], ['trade', 'İşlem'], ['other', 'Diğer']];
-  const match = (e: any) => f === 'all' || (f === 'money' && (e.type === 'deposit' || e.type === 'withdraw')) || (f === 'trade' && (e.type === 'buy' || e.type === 'sell')) || (f === 'other' && !['deposit', 'withdraw', 'buy', 'sell'].includes(e.type));
-  const list = state.ledger.filter(match);
-  const inSum = list.filter((e: any) => e.amount > 0).reduce((a?: any, e?: any) => a + e.amount, 0), outSum = list.filter((e: any) => e.amount < 0).reduce((a?: any, e?: any) => a - e.amount, 0);
   sheet(`<h3>Hesap Hareketleri</h3><div class="sub2">Para yatırma, çekme, alım satım ve teminat hareketleriniz.</div>
    <div class="hf chips">${F.map(([k, n]: any) => `<button data-act="ledgerF" data-v="${k}" class="${f === k ? 'active' : ''}">${n}</button>`).join('')}</div>
-   <div class="lsum num"><div><span>Giriş</span><b class="up">+${tl(inSum)}</b></div><div><span>Çıkış</span><b class="down">−${tl(outSum)}</b></div></div>
-   <div class="setlist">${list.length ? list.map(ledgerRow).join('') : '<div class="empty">Bu filtrede hareket yok.</div>'}</div>
+   <div class="field"><input class="inp" id="lgQ" placeholder="İşlem ara" value="${esc(lq)}" aria-label="İşlem ara"></div>
+   <div class="field" style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><input class="inp" id="lgD1" type="date" value="${esc(ld1)}" aria-label="Başlangıç tarihi"><input class="inp" id="lgD2" type="date" value="${esc(ld2)}" aria-label="Bitiş tarihi"></div>
+   <div id="lgBody">${ledgerBody(f)}</div>
    <div class="acts"><button class="btn ghost" data-act="ledgerCsv">${ic.dl} CSV indir</button><button class="btn primary" data-act="closeSheet">Kapat</button></div>`, 'Hesap hareketleri', 'tall');
+  const upd = () => { lq = v('lgQ'); ld1 = v('lgD1'); ld2 = v('lgD2'); $id('lgBody').innerHTML = ledgerBody(f); bind($id('lgBody')); };
+  ['lgQ', 'lgD1', 'lgD2'].forEach((id) => $id(id).addEventListener('input', upd));
+  bind($id('lgBody'));
 }
 function ledgerCsv() {
   const rows = [['Tarih', 'Saat', 'Tür', 'Açıklama', 'Ayrıntı', 'Tutar (TL)', 'Durum']].concat(state.ledger.map((e: any) => [dstr(e.ts), tstr(e.ts), (LTYPE[e.type] || [e.type])[0], e.title, e.sub || '', fmt(e.amount), e.status]));
@@ -1241,12 +1262,33 @@ function openNotes() {
    <div class="acts"><button class="btn ghost" data-act="closeSheet">Kapat</button><button class="btn primary" data-act="notifSet">Bildirim ayarları</button></div>`, 'Bildirimler', 'tall');
   const hadUnread = list.some((n: any) => !n.read); list.forEach((n: any) => n.read = true); paintBell(); persistApp(); if (hadUnread) void api('/notifications/read', { method: 'POST', body: {} }).catch(() => {});
 }
-function openNotifSet() {
-  const n = state.notif, sw = (k?: any, t?: any, s?: any) => `<div class="setrow"><div class="t"><b>${t}</b><span>${s}</span></div><button class="sw ${n[k] ? 'on' : ''}" data-act="nset" data-k="${k}" role="switch" aria-checked="${!!n[k]}" aria-label="${t}"><i></i></button></div>`;
-  sheet(`<h3>Bildirim Ayarları</h3><div class="sub2">Hangi durumlarda haber verelim?</div>
-   <div class="setlist">${sw('orders', 'Emir bildirimleri', 'Emir iletildi, gerçekleşti ya da iptal edildi')}${sw('alarms', 'Fiyat alarmları', 'Kurduğunuz fiyat seviyesine ulaşıldığında')}${sw('news', 'Takip listesi haberleri', 'Takip ettiğiniz paylarla ilgili haberler')}${sw('campaigns', 'Kampanyalar', 'Komisyon indirimleri ve duyurular')}</div>
-   <div class="slab">Kanallar</div>
-   <div class="setlist">${sw('email', 'E-posta', 'Önemli bildirimlerin kopyası e-postanıza')}${sw('sms', 'SMS', 'Emir gerçekleşince kısa mesaj')}</div>
+const pushSupported = () => typeof navigator !== 'undefined' && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+const b64u = (k: string) => { const p = '='.repeat((4 - k.length % 4) % 4), r = atob((k + p).replace(/-/g, '+').replace(/_/g, '/')); return Uint8Array.from([...r].map((c) => c.charCodeAt(0))); };
+async function pushState(): Promise<boolean> { try { if (!pushSupported()) return false; const reg = await navigator.serviceWorker.getRegistration('/'); return !!(reg && await reg.pushManager.getSubscription()); } catch { return false; } }
+async function togglePush() {
+  if (!pushSupported()) return toast('Bu tarayıcı anlık bildirimi desteklemiyor');
+  try {
+    const reg = await navigator.serviceWorker.register('/sw.js'); await navigator.serviceWorker.ready;
+    const cur = await reg.pushManager.getSubscription();
+    if (cur) { await api('/push/unsubscribe', { method: 'POST', body: { endpoint: cur.endpoint } }).catch(() => {}); await cur.unsubscribe(); toast('Anlık bildirimler kapatıldı'); }
+    else {
+      if (await Notification.requestPermission() !== 'granted') return toast('Bildirim izni verilmedi');
+      const k: any = await api('/push/key');
+      const sub: any = (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: b64u(k.key) })).toJSON();
+      await api('/push/subscribe', { method: 'POST', body: { endpoint: sub.endpoint, p256dh: sub.keys.p256dh, auth: sub.keys.auth, agent: navigator.userAgent.slice(0, 190) } });
+      toast('Anlık bildirimler açıldı');
+    }
+  } catch (e: any) { toast((e && e.body && e.body.message) || 'Bildirim ayarı yapılamadı'); }
+  openNotifSet();
+}
+async function openNotifSet() {
+  const n = state.notif, on = await pushState(), ok = pushSupported();
+  const sw = (k?: any, t?: any, x?: any) => `<div class="setrow"><div class="t"><b>${t}</b><span>${x}</span></div><button class="sw ${n[k] ? 'on' : ''}" data-act="nset" data-k="${k}" role="switch" aria-checked="${!!n[k]}" aria-label="${t}"><i></i></button></div>`;
+  sheet(`<h3>Bildirim Ayarları</h3><div class="sub2">Emir ve para işlemi bildirimleri hesabınızdan gelir; fiyat alarmları bu cihazda çalışır.</div>
+   <div class="setlist">
+    <div class="setrow"><div class="t"><b>Anlık bildirim (bu cihaz)</b><span>${ok ? 'Emir ve para talebi sonuçları cihazınıza bildirim olarak gelir' : 'Bu tarayıcı anlık bildirimi desteklemiyor'}</span></div><button class="sw ${on ? 'on' : ''}" data-act="pushToggle" role="switch" aria-checked="${on}" aria-label="Anlık bildirim" ${ok ? '' : 'disabled'}><i></i></button></div>
+    ${sw('alarms', 'Fiyat alarmları', 'Kurduğunuz fiyat seviyesine ulaşıldığında')}
+   </div>
    <div class="acts"><button class="btn primary" data-act="closeSheet">Tamam</button></div>`, 'Bildirim ayarları');
 }
 
@@ -1396,6 +1438,30 @@ function openPersonal() {
    <div class="acts"><button class="btn primary" data-act="closeSheet">Kapat</button></div>`, 'Kişisel bilgiler');
 }
 const v = (id: any) => ($id(id) || {}).value || '';
+function openFx() {
+  const L: any[] = [['TRY', 1]].concat((LIVE_LISTS.fx || []).map((q: any) => [String(q[0]).replace(/\/.*$/, '').replace(/TRY$/, '') || q[0], Number(q[2])])).filter((x: any) => x[1] > 0);
+  if (L.length < 2) return sheet(`<h3>Döviz Çevirici</h3><div class="sub2">Kurlar henüz yüklenmedi; birkaç saniye sonra tekrar deneyin.</div><div class="acts"><button class="btn primary" data-act="closeSheet">Tamam</button></div>`, 'Döviz çevirici');
+  const opt = (sel: string) => L.map((x: any) => `<option value="${x[1]}" ${x[0] === sel ? 'selected' : ''}>${esc(x[0])}</option>`).join('');
+  sheet(`<h3>Döviz Çevirici</h3><div class="sub2">Anlık kurlarla hesaplanır; bilgilendirme amaçlıdır.</div>
+   <div class="field"><label for="fxAmt">Tutar</label><input class="inp num" id="fxAmt" inputmode="decimal" value="1"></div>
+   <div class="field"><label for="fxFrom">Çevrilecek</label><select class="inp" id="fxFrom">${opt(L[1][0])}</select></div>
+   <div class="field"><label for="fxTo">Çevrilen</label><select class="inp" id="fxTo">${opt('TRY')}</select></div>
+   <div class="tsum num" style="margin-top:12px"><div><span>Sonuç</span><b id="fxOut">—</b></div></div>
+   <div class="acts"><button class="btn primary" data-act="closeSheet">Kapat</button></div>`, 'Döviz çevirici');
+  const calc = () => { const a = parseNum(v('fxAmt')), f = +v('fxFrom'), t = +v('fxTo'); $id('fxOut').textContent = a > 0 && f && t ? fmt(a * f / t, 4) + ' ' + $id('fxTo').selectedOptions[0].text : '—'; };
+  ['fxAmt', 'fxFrom', 'fxTo'].forEach((id) => $id(id).addEventListener('input', calc)); calc();
+}
+function openAvatar() {
+  sheet(`<h3>Profil Fotoğrafı</h3><div class="sub2">JPG veya PNG seçin; kare kırpılır.</div>
+   <div class="field"><input class="inp" id="avFile" type="file" accept="image/*"><div class="ferr2" id="avErr"></div></div>
+   <div class="acts"><button class="btn ghost" data-act="closeSheet">Vazgeç</button><button class="btn primary" data-act="avatarSave">Yükle</button></div>`, 'Profil fotoğrafı');
+}
+async function saveAvatar() {
+  const f = $id('avFile')?.files?.[0]; if (!f) return ferr('avErr', 'Bir fotoğraf seçin.');
+  const form = new FormData(); form.append('avatar', f);
+  try { await api('/profile/avatar', { method: 'POST', form }); await MeridyenAuth.load(); closeSheet(); state.keepScroll = true; render(); toast('Fotoğrafınız güncellendi'); }
+  catch (e: any) { ferr('avErr', (e && e.body && e.body.message) || 'Yüklenemedi.'); }
+}
 function openKyc() {
   const u = (MeridyenAuth.current() || {}) as any, ok = u.status === 'approved' || u.role === 'admin';
   const row = (t?: any, x?: any, good?: any) => `<div class="setrow"><span class="ic ${good ? 'lime' : ''}">${good ? ic.checkS : ic.doc}</span><div class="t"><b>${t}</b><span>${esc(x)}</span></div></div>`;
@@ -1538,6 +1604,11 @@ function extraAct(act?: any, a?: any, el?: any) {
     case 'deposit': case 'withdraw': openMoney(act); break;
     case 'mQuick': { const el2 = $id('mAmt'); el2.value = a.k === 'deposit' ? fmt(+a.v) : fmt(Math.floor(state.withdrawable * (+a.v)) / 100); ferr('mAmtErr', ''); break; }
     case 'mSave': saveMoney(a.k); break;
+    case 'mCancel': void (async () => { try { await api('/money-requests/' + a.id + '/cancel', { method: 'POST', body: {} }); await syncServer(); toast('Talep iptal edildi'); } catch (e: any) { toast((e && e.body && e.body.message) || 'Talep iptal edilemedi'); } state.keepScroll = true; render(); if (layerEl().innerHTML) openLedger('all'); })(); break;
+    case 'avatar': openAvatar(); break;
+    case 'avatarSave': saveAvatar(); break;
+    case 'pushToggle': togglePush(); break;
+    case 'fxconv': openFx(); break;
     case 'banks': openBanks(); break;
     case 'ledger': openLedger('all'); break;
     case 'ledgerF': openLedger(a.v); break;

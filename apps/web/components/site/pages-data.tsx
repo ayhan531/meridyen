@@ -149,7 +149,7 @@ export const PAGES: Record<string, PageDef> = {
     body: (<div className="wrap pg">
       <div className="bento">
         {[
-          ['chart', 'Canlı piyasa', 'Hisse, endeks, kur, fon, VİOP ve emtia fiyatları canlı kaynaktan akar. Listeleri arar, sıralar, favorilerinize eklersiniz.', 'w4 big dk'],
+          ['chart', 'Canlı piyasa', 'Hisse, endeks, kur, fon, VİOP ve emtia fiyatları canlı kaynaktan akar. Listeleri arayıp sıralayabilirsiniz.', 'w4 big dk'],
           ['clock', 'Seans bilgisi', 'Borsanın açık olup olmadığı ve açılış/kapanışa kalan süre her zaman görünür.', 'w2 lm'],
           ['layers', 'Portföy', 'Pozisyonlar, maliyet, anlık değer ve kâr/zarar. Nakit ve T+2 bakiye ayrı gösterilir.', ''],
           ['list', 'Emirler', 'Piyasa ve limit emri, bekleyen emir listesi ve tek dokunuşla iptal.', ''],

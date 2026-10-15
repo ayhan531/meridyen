@@ -1,7 +1,7 @@
 import { Injectable, Logger, OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { withConn } from '../esube/db';
 import { refreshMarket } from '../esube/market';
-import { httpJson, TRADINGVIEW_SCANNER_URL, UA_BACKEND } from '../esube/common';
+import { httpJson, UA_BACKEND } from '../esube/common';
 
 /** Endeks adı (arayüz) → canlı önbellek sembolü. */
 const INDEX_SYMBOLS: Record<string, string> = { 'BIST 100': 'XU100', 'BIST 30': 'XU030', 'USD/TRY': 'USDTRY', 'EUR/TRY': 'EURTRY' };
@@ -47,7 +47,7 @@ export class MarketService {
     this.extra.at = Date.now();
     try {
       const body = JSON.stringify({ symbols: { tickers: ['TVC:GOLD', 'TVC:UKOIL'], query: { types: [] } }, columns: ['name', 'close', 'change'] });
-      const p = await httpJson(TRADINGVIEW_SCANNER_URL, { method: 'POST', body, headers: { 'Content-Type': 'application/json', 'User-Agent': UA_BACKEND }, timeoutMs: 8000 });
+      const p = await httpJson('https://scanner.tradingview.com/cfd/scan', { method: 'POST', body, headers: { 'Content-Type': 'application/json', 'User-Agent': UA_BACKEND }, timeoutMs: 8000 });
       const v: Record<string, [number, number]> = {};
       for (const it of p?.data ?? []) {
         const d = it?.d; if (!Array.isArray(d) || !(Number(d[1]) > 0)) continue;

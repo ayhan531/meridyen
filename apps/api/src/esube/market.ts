@@ -320,7 +320,8 @@ export async function refreshMarket(conn: Conn): Promise<Row[]> {
     await conn.commit();
     return marketFromCache(conn);
   }
-  const latestRow = await conn.get('SELECT MAX(updated_at) AS updated FROM market_cache');
+  // Not: orijinalde endeks/kur satırları da bu MAX'ı tazeliyordu ve hisse beslemesi hiç çekilmiyordu; yalnız hisse/diğer satırlara bakılır.
+  const latestRow = await conn.get("SELECT MAX(updated_at) AS updated FROM market_cache WHERE asset_class NOT IN ('index','fx')");
   const latest = Number(latestRow?.updated || 0);
   const statusRow = await conn.get('SELECT updated_at FROM market_status WHERE id=1');
   const statusUpdated = statusRow ? Number(statusRow.updated_at) : 0;

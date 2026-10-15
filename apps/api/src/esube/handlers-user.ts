@@ -96,7 +96,7 @@ export async function apiForgotPassword(ctx: Ctx): Promise<Reply> {
       await conn.run('INSERT INTO password_reset_tokens (user_id, token_hash, expires_at, created_at) VALUES (?, ?, ?, ?)', [user.id, tokenHash, now() + cfg.passwordResetTtl, now()]);
       const baseUrl = (process.env.PUBLIC_BASE_URL ?? `https://${ctx.header('host')}`).replace(/\/+$/, '');
       let delivered = false;
-      try { delivered = await sendResetEmail(email, `${baseUrl}/esube/giris?reset=${token}`); } catch { delivered = false; }
+      try { delivered = await sendResetEmail(email, `${baseUrl}/giris?reset=${token}`); } catch { delivered = false; }
       await audit(conn, user.id, 'password_reset_requested', 'user', user.id, { delivered }, ctx.ip(), ctx.ua());
       await conn.commit();
     }

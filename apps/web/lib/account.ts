@@ -1,13 +1,27 @@
 /**
- * Hesap ve oturum işlemleri (sunucu: NestJS /api/auth, /api/state).
- * Oturum httpOnly çerezde tutulur; tarayıcıda yalnızca bu cihazda kullanılan hesapların listesi saklanır.
+ * Hesap ve oturum işlemleri: e-şube (ottoman) sistemiyle aynıdır — T.C. kimlik no + şifre, onaylı müşteri,
+ * bakiye / emir / para talepleri aynı veritabanından. Oturum httpOnly çerezde tutulur.
  */
 import { api, ApiFail } from './api';
 
 export interface User {
   no: string; name: string; email: string; phone: string; createdAt: string; demo: boolean; twoFA: boolean;
   lastLogin: string | null; prevLogin: string | null; marketing: boolean; pwChangedAt: string | null;
+  role: string; status: string; statusLabel: string; kycStatus: string; kycStatusLabel: string; kycNote: string; avatar: string;
 }
+const toUser = (u: any): User => ({
+  no: u.account_no || String(u.id), name: u.full_name || '', email: u.email || '', phone: String(u.phone || ''), createdAt: u.created_at ? String(u.created_at).replace(' ', 'T') + 'Z' : '',
+  demo: false, twoFA: !!u.two_factor_enabled, lastLogin: u.last_login_at || null, prevLogin: null, marketing: false, pwChangedAt: null,
+  role: u.role || 'user', status: u.status || '', statusLabel: u.status_label || '', kycStatus: u.kyc_status || '', kycStatusLabel: u.kyc_status_label || '', kycNote: u.kyc_note || '', avatar: u.avatar_url || '',
+});
+export const tcValid = (tc: string) => {
+  const d = String(tc).replace(/\D/g, '');
+  if (!/^[1-9]\d{10}$/.test(d)) return false;
+  const n = d.split('').map(Number);
+  const odd = n[0] + n[2] + n[4] + n[6] + n[8], even = n[1] + n[3] + n[5] + n[7];
+  if (((odd * 7 - even) % 10 + 10) % 10 !== n[9]) return false;
+  return n.slice(0, 10).reduce((a, b) => a + b, 0) % 10 === n[10];
+};
 type Fields = Record<string, string>;
 
 /* ---------- doğrulama (sunucudakiyle aynı kurallar) ---------- */
@@ -35,8 +49,8 @@ export const V = {
   },
   password(v: string) {
     const s = String(v ?? '');
-    if (s.length < 8) return 'Şifre en az 8 karakter olmalı.';
-    if (!/[A-Za-zÇĞİÖŞÜçğıöşü]/.test(s) || !/\d/.test(s)) return 'Şifrede en az bir harf ve bir rakam olmalı.';
+    if (s.length < 10) return 'Şifre en az 10 karakter olmalı.';
+    if (!/[a-zçğıöşü]/.test(s) || !/[A-ZÇĞİÖŞÜ]/.test(s) || !/\d/.test(s)) return 'Şifrede büyük harf, küçük harf ve rakam olmalı.';
     if (s.length > 128) return 'Şifre en fazla 128 karakter olabilir.';
     return '';
   },
@@ -62,95 +76,64 @@ export function safeNext(next: string | null | undefined): string {
 }
 
 /* ---------- bu cihazdaki hesaplar ---------- */
-const ACC = 'mrdyn.accounts.v2';
+const ACC = 'mrdyn.accounts.v3';
 function readAccounts(): { no: string; user: string }[] { try { return JSON.parse(localStorage.getItem(ACC) || '[]'); } catch { return []; } }
 function rememberAccount(u: User) {
   try { const l = readAccounts().filter((a) => a.no !== u.no); l.unshift({ no: u.no, user: u.name }); localStorage.setItem(ACC, JSON.stringify(l.slice(0, 8))); } catch { /* yok say */ }
 }
-function forgetAccount(no: string) { try { localStorage.setItem(ACC, JSON.stringify(readAccounts().filter((a) => a.no !== no))); } catch { /* yok say */ } }
 
 /* ---------- oturum ---------- */
 let me: User | null = null;
 let remember = false;
+let acct: any = null;
 
 const fail = (e: unknown) => (e instanceof ApiFail ? e.body : { message: 'İşlem tamamlanamadı.' });
 
 export const Account = {
-  DEMO: { no: '48273621' },
+  DEMO: { no: '' },
   async load(): Promise<User | null> {
-    try { const r = await api<{ user: User | null; remember: boolean }>('/auth/me'); me = r.user; remember = r.remember; if (me) rememberAccount(me); }
+    try { const r = await api<{ user: any; account?: any }>('/me'); me = r.user ? toUser(r.user) : null; acct = r.account || null; if (me) rememberAccount(me); }
     catch { me = null; }
     return me;
   },
   current(): (User & { remember: boolean }) | null { return me ? { ...me, remember } : null; },
   getUser(no: string): User | null { return me && me.no === no ? me : null; },
+  accountInfo() { return acct; },
   accounts() { const l = readAccounts(); if (me && !l.some((a) => a.no === me!.no)) l.unshift({ no: me.no, user: me.name }); return l; },
 
-  async register(input: { name: string; email: string; phone: string; password: string; passwordConfirm?: string; consent: boolean; marketing?: boolean; remember?: boolean }) {
-    try { const r = await api<{ user: User }>('/auth/register', { method: 'POST', body: input }); me = r.user; remember = !!input.remember; rememberAccount(me); return { ok: true as const, user: me }; }
-    catch (e) { const b = fail(e); return { ok: false as const, errors: (b as { errors?: Fields }).errors || { form: b.message } }; }
+  async register(f: Record<string, string | boolean>) {
+    const form = new FormData();
+    Object.entries(f).forEach(([k, v]) => { if (typeof v === 'boolean') { if (v) form.append(k, '1'); } else if (v != null) form.append(k, String(v)); });
+    try { await api('/register', { method: 'POST', form }); return { ok: true as const }; }
+    catch (e) { return { ok: false as const, error: fail(e).message }; }
   },
-  async signIn(identifier: string, password: string, rem: boolean) {
+  async signIn(tc: string, password: string, rem: boolean) {
     try {
-      const r = await api<{ user?: User; needCode?: boolean; code?: string | null; phone?: string }>('/auth/login', { method: 'POST', body: { identifier, password, remember: rem } });
-      if (r.needCode) return { ok: false as const, needCode: true as const, code: r.code || null, phone: r.phone || '' };
-      me = r.user!; remember = rem; rememberAccount(me);
+      const r = await api<{ user: any }>('/login', { method: 'POST', body: { tc: tc.replace(/\D/g, ''), password, remember: rem } });
+      me = toUser(r.user); remember = rem; rememberAccount(me);
       return { ok: true as const, user: me };
-    } catch (e) { const b = fail(e) as { message: string; field?: string; locked?: boolean }; return { ok: false as const, error: b.message, field: b.field, locked: b.locked }; }
+    } catch (e) { const b = fail(e) as { message: string }; return { ok: false as const, error: b.message }; }
   },
-  async verifyCode(code: string) {
-    try { const r = await api<{ user: User }>('/auth/verify-code', { method: 'POST', body: { code } }); me = r.user; rememberAccount(me); return { ok: true as const }; }
-    catch (e) { const b = fail(e) as { message: string; expired?: boolean }; return { ok: false as const, error: b.message, expired: !!b.expired }; }
-  },
-  async resetPassword(input: { email: string; phone: string; password: string; confirm?: string }) {
-    try { const r = await api<{ no: string }>('/auth/reset-password', { method: 'POST', body: input }); return { ok: true as const, no: r.no }; }
-    catch (e) { const b = fail(e) as { message: string; errors?: Fields }; return { ok: false as const, errors: b.errors || { form: b.message } }; }
-  },
-  async signOut() { try { await api('/auth/logout', { method: 'POST', body: {} }); } catch { /* yok say */ } me = null; },
-  async setRemember(on: boolean) { try { await api('/auth/remember', { method: 'POST', body: { remember: on } }); remember = on; } catch { /* yok say */ } },
-  async updateProfile(_no: string, input: { name: string; email: string; phone: string; marketing?: boolean }) {
-    try { const r = await api<{ user: User }>('/auth/profile', { method: 'PATCH', body: input }); me = r.user; rememberAccount(me); return { ok: true as const, user: me }; }
-    catch (e) { const b = fail(e) as { message: string; errors?: Fields }; return { ok: false as const, errors: b.errors || { form: b.message } }; }
-  },
-  async changePassword(_no: string, current: string, next: string, confirm?: string) {
-    try { const r = await api<{ user: User }>('/auth/change-password', { method: 'POST', body: { current, next, confirm } }); me = r.user; return { ok: true as const }; }
-    catch (e) { const b = fail(e) as { message: string; field?: string }; return { ok: false as const, field: b.field || 'current', error: b.message }; }
-  },
-  async setTwoFA(_no: string, enabled: boolean) {
-    try { const r = await api<{ user: User }>('/auth/two-factor', { method: 'POST', body: { enabled } }); me = r.user; return { ok: true as const, user: me }; }
+  async forgot(tc: string, email: string) {
+    try { const r = await api<{ message: string }>('/password/forgot', { method: 'POST', body: { tc: tc.replace(/\D/g, ''), email } }); return { ok: true as const, message: r.message }; }
     catch (e) { return { ok: false as const, error: fail(e).message }; }
   },
-  async deleteAccount(no: string, password: string) {
-    try { await api('/auth/account', { method: 'DELETE', body: { password } }); forgetAccount(no); me = null; return { ok: true as const }; }
+  async resetPassword(token: string, newPassword: string) {
+    try { const r = await api<{ message: string }>('/password/reset', { method: 'POST', body: { token, new_password: newPassword } }); return { ok: true as const, message: r.message }; }
     catch (e) { return { ok: false as const, error: fail(e).message }; }
   },
-
-  /* ---------- uygulama durumu ---------- */
-  async loadState(): Promise<{ data: Record<string, unknown> | null; rev: number }> {
-    const r = await api<{ data: Record<string, unknown> | null; rev: number }>('/state');
-    stateRev = r.rev; return r;
+  async signOut() { try { await api('/logout', { method: 'POST', body: {} }); } catch { /* yok say */ } me = null; acct = null; },
+  async changePassword(current: string, next: string) {
+    try { await api('/profile/password', { method: 'POST', body: { current_password: current, new_password: next } }); return { ok: true as const }; }
+    catch (e) { return { ok: false as const, error: fail(e).message }; }
   },
-  /** Değişiklikler 600 ms içinde toplanıp tek istekle kaydedilir. */
-  saveState(data: Record<string, unknown>) { pending = data; if (saveTimer) clearTimeout(saveTimer); saveTimer = setTimeout(() => void flush(false), 600); },
-  flushState() { if (pending) void flush(true); },
-  onConflict(f: (data: Record<string, unknown>) => void) { conflictHandler = f; },
+  async uploadDocuments(front: File | null, back: File | null) {
+    const form = new FormData();
+    if (front) form.append('identity_front', front);
+    if (back) form.append('identity_back', back);
+    try { await api('/profile/documents', { method: 'POST', form }); return { ok: true as const }; }
+    catch (e) { return { ok: false as const, error: fail(e).message }; }
+  },
+  /** Bakiye, pozisyonlar, emirler, para talepleri, işlemler, banka hesapları, belgeler: tek çağrı. */
+  portfolio() { return api<any>('/portfolio'); },
 };
-
-let pending: Record<string, unknown> | null = null;
-let saveTimer: ReturnType<typeof setTimeout> | null = null;
-let stateRev = 0;
-let saving = false;
-let conflictHandler: ((data: Record<string, unknown>) => void) | null = null;
-
-async function flush(keepalive: boolean) {
-  if (!pending || (saving && !keepalive)) return;
-  const data = pending; pending = null; saving = true;
-  try {
-    const r = await api<{ ok?: boolean; rev: number; conflict?: boolean; data?: Record<string, unknown> }>('/state', { method: 'PUT', body: { data, rev: stateRev }, keepalive });
-    stateRev = r.rev;
-    if (r.conflict && r.data && conflictHandler) conflictHandler(r.data);
-  } catch (e) {
-    if (e instanceof ApiFail && e.status === 401) { window.location.href = '/giris?next=/app'; return; }
-    if (!pending) pending = data;   // bağlantı hatası: bir sonraki değişiklikle yeniden denenir
-  } finally { saving = false; if (pending && !keepalive) { if (saveTimer) clearTimeout(saveTimer); saveTimer = setTimeout(() => void flush(false), 1500); } }
-}

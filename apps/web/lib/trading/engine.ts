@@ -5,7 +5,8 @@
  */
 import { COLORS, INDICES, LIVE_LISTS, LOGO, NEWS, NEWSFEED, STOCKS, IMG_BASE } from '../market-data';
 import { MeridyenMarket, history as priceHistory } from '../market';
-import { Account, maskPhone, normPhone, strength } from '../account';
+import { Account, maskPhone, normPhone, strength, V } from '../account';
+import { api } from '../api';
 
 const MeridyenAuth = { ...Account, maskPhone, normPhone, strength };
 let preloadedState: any = null;
@@ -14,34 +15,17 @@ const $q = (root: any, sel: string): any => root.querySelector(sel);
 
 /* ---------- durum ---------- */
 const state: any={
- cash:128450.00,
- holdings:[
-  {s:'THYAO',q:150,cost:284.10},{s:'ASELS',q:200,cost:92.40},{s:'KCHOL',q:300,cost:210.50},
-  {s:'BIMAS',q:60,cost:512.00},{s:'SISE',q:500,cost:47.80},{s:'EREGL',q:400,cost:51.20}
- ],
- orders:[
-  {id:'MRD-2609-0421',s:'ASELS',side:'buy',type:'limit',price:118.00,qty:200,filled:0,tif:'İKG',status:'pending',t:'20 Eyl 2026 · 09:58'},
-  {id:'MRD-2609-0418',s:'GARAN',side:'sell',type:'limit',price:158.00,qty:100,filled:0,tif:'Günlük',status:'pending',t:'20 Eyl 2026 · 09:41'},
-  {id:'MRD-2609-0402',s:'THYAO',side:'buy',type:'market',price:311.75,qty:50,filled:50,tif:'Günlük',status:'filled',t:'19 Eyl 2026 · 15:22'},
-  {id:'MRD-2609-0377',s:'EREGL',side:'buy',type:'limit',price:53.40,qty:400,filled:400,tif:'Günlük',status:'filled',t:'18 Eyl 2026 · 11:05'},
-  {id:'MRD-2609-0351',s:'FROTO',side:'sell',type:'limit',price:1180.00,qty:10,filled:0,tif:'Günlük',status:'cancelled',t:'17 Eyl 2026 · 17:59'},
- ],
+ cash:0, holdings:[], orders:[], sold:[], banks:[], sysBanks:[], money:[], withdrawable:0,
  screen:'welcome', nav:[], period:'1G', hidden:false, detail:'THYAO',
  ticket:{s:'THYAO',side:'buy',type:'market',price:null,qty:0,tif:'Günlük',pct:null}, ticketQuery:'', keepScroll:false,   // emir tipi Piyasa; fiyat ve adet boş, kullanıcı girer
- // Kapanmış (satılmış) pozisyonlar: Portföy > Satılanlar bölümü.
- sold:[
-  {s:'SISE',q:250,cost:46.60,px:52.30,d:'12 Oca 2026',sa:'17:42',plp:12.14},
-  {s:'FROTO',q:20,cost:1042.00,px:1178.50,d:'28 Ara 2025',sa:'14:05',plp:13.10},
-  {s:'GARAN',q:300,cost:148.20,px:139.40,d:'05 Ara 2025',sa:'11:23',plp:-5.94},
-  {s:'TUPRS',q:120,cost:151.30,px:168.90,d:'14 Kas 2025',sa:'16:58',plp:11.63}
- ],
+ // Satılan pozisyonlar sunucudaki hesap hareketlerinden gelir (state.sold).
  ordersTab:'pending', pfTab:'holdings', theme:'light', mkt:'stocks', lastOrder:null,
  mktQuery:'', mktView:'list', mktSort:'az', mktSec:'', tradeSheet:null, allocOpen:false, fontSize:'normal', saleIx:0, saleSheet:false, histF:'all',   // Piyasalar: arama, görünüm, sıralama, sektör filtresi
  /* Oturum: işlem yapılan bölümler (Portföy, Al · Sat, Takip, Hesap) giriş ister.
     ask=true ise her açılışta şifre sorulur; "Beni Hatırla" işaretlenirse oturum açık kalır. */
- auth:{in:false, ask:true, remember:false, user:'Demo Kullanıcı', no:'48273621', pending:null, err:'', mode:'login'},
+ auth:{in:false, ask:true, remember:false, user:'', no:'', pending:null, err:'', mode:'login'},
  /* Cihazdaki hesaplar — açılıştaki yuvarlak profil rozetinin yanındaki çentikten seçilir (Instagram gibi). */
- accounts:[{no:'48273621',user:'Demo Kullanıcı'},{no:'50918342',user:'Ayşe Yılmaz'}]
+ accounts:[]
 };
 const stock=(s: any): any=>STOCKS.find((x: any)=>x.s===s);
 const holding=(s: any): any=>state.holdings.find((h: any)=>h.s===s);
@@ -214,7 +198,7 @@ function renderNews(){
   <div class="card news"><div class="list">${feed.length?'':'<div class="empty">Seçili kaynaklardan haber yok. Kaynaklar\'dan açabilirsiniz.</div>'}${feed.map((n: any)=>`<button class="rowitem" data-act="article" data-i="${n.i}">
    <div class="t"><b>${n.t}</b><span class="src">${n.s}${n.tag==='Gündem'?'':' · '+n.tag}</span></div>${ic.chev}
   </button>`).join('')}</div></div>
-  <div class="note" style="text-align:center">Haber akışı örnektir; yatırım tavsiyesi değildir.</div>
+  <div class="note" style="text-align:center">Yatırım tavsiyesi değildir.</div>
  </section>`;
 }
 
@@ -357,7 +341,7 @@ function renderMkt(){
    <div class="t"><b>${r.k}</b><span>${r.n}</span></div>
    <div class="p num"><b>${r.v}</b>${r.c!=null?`<span class="${cls(r.c)}">${pct(r.c)}</span>`:r.note?`<span>${r.note}</span>`:''}</div>
   </button>`).join('')||'<div class="empty">Bu kategoride kayıt yok.</div>'}</div></div>
-  <div class="note">Liste örnektir; gerçek veri bağlanmadı. Hisse satırlarına dokununca hisse sayfası açılır.</div>
+  <div class="note">Hisse satırlarına dokununca hisse sayfası açılır.</div>
  </section>`;
 }
 
@@ -546,7 +530,7 @@ function renderTicket(){
 
   <div class="tsheet">
    <div class="field">
-    <div class="seg small">${[['limit','Limit'],['market','Piyasa'],['stop','Stop']].map(([k,l]: any)=>`<button data-act="ttype" data-v="${k}" class="${t.type===k?'active':''}">${l}</button>`).join('')}</div>
+    <div class="seg small">${[['limit','Limit'],['market','Piyasa']].map(([k,l]: any)=>`<button data-act="ttype" data-v="${k}" class="${t.type===k?'active':''}">${l}</button>`).join('')}</div>
    </div>
 
    ${t.type==='market'?`
@@ -687,12 +671,12 @@ function renderProfile(){
  const pf=portfolio(), hide=state.hidden, dark=state.theme==='dark';
  const m=(v: any)=>hide?String(v).replace(/[0-9]/g,"•"):v;
  const acc=state.accounts.find((x: any)=>x.no===state.auth.no)||{user:state.auth.user,no:state.auth.no};
- const reserved=state.orders.filter((o: any)=>o.status==='pending'&&o.side==='buy').reduce((a?: any, o?: any)=>a+o.price*o.qty*(1+commRate*(1+bsmv)),0);
+ const reserved=Number((state.account||{}).orders_reserved)||0;
  const row=(icon?: any, t?: any, s?: any, act?: any, extra?: any)=>`<button data-act="${act}"><span class="ic">${icon}</span><div class="t"><b>${t}</b><span>${s}</span></div>${extra||''}${ic.chev}</button>`;
  const quick=(icon?: any, t?: any, act?: any)=>`<button class="qtile" data-act="${act}"><span class="qi">${icon}</span><span>${t}</span></button>`;
  const me: any=MeridyenAuth.getUser(state.auth.no)||{};
  return `<section class="screen">
-  <button class="card profcard" data-act="personal" aria-label="Kişisel bilgileri düzenle">
+  <button class="card profcard" data-act="personal" aria-label="Kişisel bilgiler">
    <span class="big">${esc(initials(acc.user))}</span>
    <b>${esc(acc.user)}</b>
    <span class="mno">Müşteri No: ${esc(acc.no)}</span>
@@ -719,9 +703,9 @@ function renderProfile(){
 
   <div class="slabel">Hesap İşlemleri</div>
   <div class="card"><div class="setlist">
-   ${row(ic.user,'Kişisel bilgiler','Kimlik ve iletişim bilgilerinizi yönetin','personal')}
-   ${row(ic.shield,'Güvenlik','Şifre, iki adımlı doğrulama ve güvenlik ayarları','security')}
-   ${row(ic.checkS,'Kimlik Doğrulama','Onaylandı','kyc')}
+   ${row(ic.user,'Kişisel bilgiler','Kimlik ve iletişim bilgileriniz','personal')}
+   ${row(ic.shield,'Güvenlik','Şifrenizi değiştirin','security')}
+   ${row(ic.checkS,'Kimlik Doğrulama',esc(me.statusLabel||'—')+(me.status==='approved'?'':' · belge yükleyin'),'kyc')}
    ${row(ic.bank,'Banka hesaplarım','Para yatırma ve çekme işlemleri için hesaplarınız','banks')}
    ${row(ic.doc,'Sözleşmeler','Çerçeve sözleşme, risk bildirimi ve bilgilendirme metinleri','contracts')}
   </div></div>
@@ -732,17 +716,15 @@ function renderProfile(){
     <button class="sw ${dark?'on':''}" data-act="theme" role="switch" aria-checked="${dark}"><i></i></button></div>
    <div class="setrow"><span class="ic">${ic.text}</span><div class="t"><b>Yazı Boyutu</b><span>Uygulama genelinde yazı ölçüsü</span></div>
     <div class="fsseg">${[['small','A'],['normal','A'],['large','A']].map(function(o?: any){return '<button data-act="fs" data-v="'+o[0]+'" class="'+(state.fontSize===o[0]?'active':'')+'">'+o[1]+'</button>'}).join('')}</div></div>
-   <div class="setrow"><span class="ic">${ic.lock}</span><div class="t"><b>Her Girişte Şifre Sor</b><span>Uygulama her açıldığında giriş ekranı gelsin</span></div>
-    <button class="sw ${!state.auth.remember?'on':''}" data-act="askpw" role="switch" aria-checked="${!state.auth.remember}"><i></i></button></div>
    ${row(ic.bell,'Bildirim ayarları','Fiyat, haber ve işlem bildirimleri','notifSet')}
    ${row(ic.help,'Yardım ve destek','Sıkça sorulan sorular ve iletişim','help')}
-   ${row(ic.gift,'Referans Fırsatları','Arkadaşını davet et, ikiniz de kazanın','referral')}
+   ${row(ic.gift,'Referans Fırsatları','Davet kodunuzu paylaşın','referral')}
    ${row(ic.dl,'Uygulamayı Yükle','Mobil uygulamayı cihazınıza indirin','install')}
    ${row(ic.grid,'Uygulama hakkında','Sürüm 1.0.0 · Sürümünüz güncel.','about')}
   </div></div>
 
   <button class="card logout" data-act="logout">${ic.out} Çıkış Yap</button>
-  <div class="note" style="text-align:center">Meridyen Yatırım Menkul Değerler A.Ş. · SPK lisanslı · Yatırımcı Tazmin Merkezi üyesi<br>Prototip — tüm veriler örnektir.</div>
+  <div class="note" style="text-align:center">Meridyen Yatırım Menkul Değerler A.Ş. · SPK lisanslı · Yatırımcı Tazmin Merkezi üyesi</div>
  </section>`;
 }
 
@@ -835,7 +817,7 @@ function tradeHTML(){
    <button data-act="tside" data-v="sell" class="${!isBuy?'active sell':''}">Sat</button>
   </div>
   <div class="field"><label>Emir Tipi</label>
-   <div class="seg small">${[['limit','Limit'],['market','Piyasa'],['stop','Stop']].map(([k,l]: any)=>`<button data-act="ttype" data-v="${k}" class="${t.type===k?'active':''}">${l}</button>`).join('')}</div>
+   <div class="seg small">${[['limit','Limit'],['market','Piyasa']].map(([k,l]: any)=>`<button data-act="ttype" data-v="${k}" class="${t.type===k?'active':''}">${l}</button>`).join('')}</div>
   </div>
   ${t.type==='market'
    ?`<div class="field"><label><span>Tutar (TL)</span><b class="num">Piyasa fiyatı ${tl(st.p)}</b></label>
@@ -884,8 +866,7 @@ function needsAuth(sc?: any){ return AUTH_SCREENS.indexOf(sc)>=0; }
 function initials(n?: any){ return (n||'').trim().split(/\s+/).slice(0,2).map((w: any)=>w[0]||'').join('').toLocaleUpperCase('tr')||'M'; }
 /* Web sürümü: giriş, kayıt ve hesap değişimi ayrı sayfalarda yapılır (giris.html / kayit.html).
    Oturum MeridyenAuth modülündedir; uygulama yalnızca onu okur. */
-const DEMO_MODE=/[?&]demo=1\b/.test(location.search);
-const START_CASH=100000;   // yeni hesaplara tanımlanan başlangıç bakiyesi
+const DEMO_MODE=false as boolean;
 const SITE_ROOT='/';
 function topNav(url?: any){ try{ (window.top||window).location.href=url; }catch(e){ location.href=url; } }
 function openLogin(next?: any, opts?: any){ topNav('/giris?next=/app'); }
@@ -905,53 +886,105 @@ function openAccounts(){
  bind($id('layer'));
 }
 function pickAccount(no?: any){
- if(state.auth.in && state.auth.no===no){ closeSheet(); return; }   // zaten bu hesaptasınız
- if(DEMO_MODE){ topNav('/giris?no='+encodeURIComponent(no)+'&next=/app'); return; }
- MeridyenAuth.flushState(); void MeridyenAuth.signOut();   // hesap değişince şifre yeniden sorulur
+ if(state.auth.in && state.auth.no===no){ closeSheet(); return; }
+ void MeridyenAuth.signOut();
  topNav('/giris?no='+encodeURIComponent(no)+'&next=/app');
 }
-async function addAccount(){ if(!DEMO_MODE){ MeridyenAuth.flushState(); await MeridyenAuth.signOut(); } topNav('/giris?next=/app'); }
-async function logout(){
- if(DEMO_MODE){ topNav('/giris'); return; }
- persistApp(); MeridyenAuth.flushState(); await MeridyenAuth.signOut();
- topNav('/giris?cikis=1');
-}
-function saveAuth(){ if(!DEMO_MODE) MeridyenAuth.setRemember(state.auth.remember); }
+async function addAccount(){ await MeridyenAuth.signOut(); topNav('/giris?next=/app'); }
+async function logout(){ persistApp(); await MeridyenAuth.signOut(); topNav('/giris?cikis=1'); }
+function saveAuth(){}
 function loadAuth(){
- if(DEMO_MODE){ state.auth.in=true; state.auth.user='Demo Kullanıcı'; state.auth.no=MeridyenAuth.DEMO.no; state.accounts=[{no:state.auth.no,user:state.auth.user}]; return; }
  const u=MeridyenAuth.current();
  if(!u){ state.auth.in=false; return; }
  state.auth.in=true; state.auth.user=u.name; state.auth.no=u.no; state.auth.remember=u.remember;
  state.accounts=MeridyenAuth.accounts();
- const saved: any=preloadedState;
- if(saved && saved.v===1){ PERSIST_KEYS.forEach((k: any)=>{ if(saved[k]!==undefined) state[k]=saved[k]; }); }
- else if(!u.demo){   // yeni hesap: boş portföy ve başlangıç bakiyesi
-  state.cash=START_CASH; state.holdings=[]; state.orders=[]; state.sold=[]; state.sampleData=false; state.firstRun=true;
- }
+ loadPrefs();
 }
-/* Portföy, emirler ve tercihler hesaba özel saklanır; tanıtım önizlemesi kalıcı değildir. */
-const PERSIST_KEYS=['cash','holdings','orders','sold','theme','fontSize','hidden','sampleData','watch','alarms','notes','ledger','banks','tickets','ipoReq','notif','newsOff','mktView','mktSort'];
+/* Yalnızca cihaz tercihleri yerel saklanır; bakiye, emir, hareket ve bildirimler sunucudan (e-şube) gelir. */
+const PERSIST_KEYS=['theme','fontSize','hidden','watch','alarms','notif','newsOff','mktView','mktSort','tickets','localNotes'];
+const prefKey=()=>'mrdyn.prefs.'+state.auth.no;
 function persistApp(){
- if(DEMO_MODE || !state.auth.in) return;
- const o: any={v:1}; PERSIST_KEYS.forEach((k: any)=>o[k]=state[k]); MeridyenAuth.saveState(o);
+ if(!state.auth.in) return;
+ try{ const o: any={}; PERSIST_KEYS.forEach((k: any)=>o[k]=state[k]); o.localNotes=(state.notes||[]).filter((n: any)=>n.k==='alarm').slice(0,30); localStorage.setItem(prefKey(),JSON.stringify(o)); }catch(e){}
+}
+function loadPrefs(){
+ try{ const o=JSON.parse(localStorage.getItem(prefKey())||'null'); if(o) PERSIST_KEYS.forEach((k: any)=>{ if(o[k]!==undefined) state[k]=o[k]; }); }catch(e){}
+}
+
+/* ---------- sunucu (e-şube) eşitlemesi ---------- */
+const mapOrder=(o: any)=>({id:String(o.id), ref:o.execution_reference||'', s:o.symbol, side:o.side, type:o.order_type, price:Number(o.limit_price)||0, qty:Number(o.quantity)||0,
+ filled:o.status==='approved'?Number(o.quantity)||0:0, tif:'Günlük', status:o.status==='approved'?'filled':o.status==='pending'?'pending':'cancelled', label:o.status_label||'', admin:o.admin_note||'', t:o.created_at_label||''});
+let syncing=false;
+async function syncServer(): Promise<boolean>{
+ if(syncing || !state.auth.in) return false;
+ syncing=true;
+ try{
+  const [d, n]: any=await Promise.all([MeridyenAuth.portfolio(), api<any>('/notifications').catch(()=>null)]);
+  await MeridyenAuth.load();
+  const acc=d.account||{};
+  state.cash=Math.max(0,(Number(acc.cash_balance)||0)+(Number(acc.pending_balance)||0)-(Number(acc.pending_withdrawals)||0));
+  state.withdrawable=Math.max(0,(Number(acc.cash_balance)||0)-(Number(acc.pending_withdrawals)||0));
+  state.account=acc;
+  state.holdings=(d.positions||[]).filter((p: any)=>Number(p.quantity)>0).map((p: any)=>({s:p.symbol,q:Number(p.quantity),cost:Number(p.avg_price)||0}));
+  state.orders=(d.orders||[]).map(mapOrder).sort((a: any,b: any)=>Number(b.id)-Number(a.id));
+  state.banks=(d.bank_accounts||[]).map((b: any)=>({id:b.id,bank:b.bank_name,iban:b.iban,holder:b.account_holder}));
+  state.sysBanks=d.system_bank_accounts||[];
+  state.money=d.money_requests||[];
+  state.docs=d.documents||[];
+  const tx=d.transactions||[];
+  state.sold=tx.filter((t: any)=>t.transaction_type==='trade_sell').map((t: any)=>{
+   const m=/Ortalama maliyet:\s*([\d.,]+)/.exec(t.note||''); const cost=m?parseFloat(m[1].replace(/,/g,'')):0, px=Number(t.price)||0, ts=t.created_at*1000;
+   return {s:t.code,q:Number(t.quantity)||0,cost,px,d:dstr(ts),sa:tstr(ts),plp:cost?(px-cost)/cost*100:0};
+  });
+  const L: any[]=[];
+  tx.forEach((t: any)=>{
+   const ts=t.created_at*1000, ty=t.transaction_type, diff=(Number(t.balance_after)||0)-(Number(t.balance_before)||0);
+   if(ty==='trade_buy') L.push({id:'t'+t.id,ts,type:'buy',title:`${t.code} alış`,sub:`${fmt(t.quantity,0)} adet · ${tl(t.price)}`,amount:-Number(t.total),status:'Gerçekleşti'});
+   else if(ty==='trade_sell') L.push({id:'t'+t.id,ts,type:'sell',title:`${t.code} satış`,sub:`${fmt(t.quantity,0)} adet · ${tl(t.price)}`,amount:Number(t.total),status:'Gerçekleşti'});
+   else if(ty==='deposit') L.push({id:'t'+t.id,ts,type:'deposit',title:'Para yatırma',sub:t.reference||'',amount:Number(t.total),status:'Onaylandı'});
+   else if(ty==='withdrawal_request'||ty==='withdraw') L.push({id:'t'+t.id,ts,type:'withdraw',title:'Para çekme',sub:t.reference||'',amount:-Math.abs(Number(t.total)),status:'Onaylandı'});
+   else if(ty==='t2_settlement') L.push({id:'t'+t.id,ts,type:'refund',title:t.type_label||'Satış bakiyesi aktarımı',sub:t.code||'',amount:Number(t.total)||diff,status:'Gerçekleşti'});
+   else L.push({id:'t'+t.id,ts,type:'other',title:t.type_label||ty,sub:t.note||'',amount:diff,status:'Gerçekleşti'});
+  });
+  (d.money_requests||[]).filter((m: any)=>m.status==='pending'||m.status==='rejected'||m.status==='cancelled').forEach((m: any)=>{
+   const dep=m.request_type==='deposit';
+   L.push({id:'m'+m.id,ts:m.created_at*1000,type:dep?'deposit':'withdraw',title:dep?'Para yatırma talebi':'Para çekme talebi',sub:m.transfer_code||'',amount:dep?Number(m.amount):-Number(m.amount),status:m.status_label||'Bekliyor'});
+  });
+  (d.orders||[]).filter((o: any)=>o.status==='pending'&&o.side==='buy').forEach((o: any)=>{
+   L.push({id:'o'+o.id,ts:o.created_at*1000,type:'block',title:`${o.symbol} alış emri teminatı`,sub:`${fmt(o.quantity,0)} adet · ${tl(o.limit_price)}`,amount:-Number(o.total),status:'Bekliyor'});
+  });
+  state.ledger=L.sort((a: any,b: any)=>b.ts-a.ts);
+  if(n && Array.isArray(n.notifications)){
+   const srv=n.notifications.map((x: any)=>({id:'s'+x.id,ts:x.created_at*1000,k:x.category==='islem'?'order':'info',title:x.title,body:x.body,read:!!x.read_at}));
+   const keep=(state.notes||[]).filter((x: any)=>x.k==='alarm');
+   state.notes=[...srv,...keep].sort((a: any,b: any)=>b.ts-a.ts).slice(0,80);
+   paintBell();
+  }
+  return true;
+ }catch(e: any){
+  if(e && e.status===401){ topNav('/giris?next=/app'); }
+  return false;
+ }finally{ syncing=false; }
 }
 function esc(v?: any){ return String(v==null?'':v).replace(/[&<>"']/g,(c: any)=>(({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}) as any)[c]); }
-function submitOrder(){
- const {t,st,isBuy,px,gross}=ticketCalc();
- const fee=gross*commRate*(1+bsmv);
- const now=new Date(); const id=orderId();
- const tstr=now.toLocaleDateString('tr-TR',{day:'numeric',month:'short',year:'numeric'})+' · '+now.toLocaleTimeString('tr-TR',{hour:'2-digit',minute:'2-digit'});
- const fills=t.type==='market'||(t.type==='limit'&&(isBuy?px>=st.p:px<=st.p));
- const o={id,s:t.s,side:t.side,type:t.type,price:px,qty:t.qty,filled:fills?t.qty:0,tif:t.tif,status:fills?'filled':'pending',t:tstr};
- if(fills){
-  const h=holding(t.s);
-  if(isBuy){ state.cash-=gross+fee; if(h){h.cost=(h.cost*h.q+px*t.qty)/(h.q+t.qty);h.q+=t.qty}else state.holdings.push({s:t.s,q:t.qty,cost:px}); }
-  else { state.cash+=gross-fee; recordSale(t.s,t.qty,h.cost,px); h.q-=t.qty; if(h.q<=0) state.holdings=state.holdings.filter((x: any)=>x!==h); }
- } else if(isBuy){ state.cash-=gross+fee; }
- state.orders.unshift(o); state.lastOrder=o; afterOrder(o,gross,fee); state.ticket.qty=0; state.ticket.price=null; state.ticket.pct=null;
- closeSheet();
- render();                 // sayfa değişmez; portföy ve nakit yerinde güncellenir
- orderToast(o);            // üstte 2 saniyelik "alındı / satıldı · Takas T+2" bildirimi
+let submitting=false;
+async function submitOrder(){
+ if(submitting) return;
+ const u: any=MeridyenAuth.current();
+ if(u && u.role!=='admin' && u.status!=='approved'){ closeSheet(); openKyc(); return; }
+ const {t,px}=ticketCalc();
+ if(t.type==='stop'){ closeSheet(); toast('Stop emri desteklenmiyor; Limit ya da Piyasa seçin'); return; }
+ submitting=true;
+ try{
+  const body: any={symbol:t.s,side:t.side,order_type:t.type,quantity:t.qty,client_order_id:'w'+Date.now().toString(36)+Math.random().toString(36).slice(2,8)};
+  if(t.type==='limit') body.limit_price=px; else body.price=px;
+  const r: any=await api('/orders',{method:'POST',body});
+  await syncServer();
+  const o=state.orders.find((x: any)=>x.id===String(r.order.id))||mapOrder(r.order);
+  state.lastOrder=o; state.ticket.qty=0; state.ticket.price=null; state.ticket.pct=null;
+  closeSheet(); render(); orderToast(o);
+ }catch(e: any){ closeSheet(); toast((e&&e.body&&e.body.message)||'Emir iletilemedi'); }
+ finally{ submitting=false; }
 }
 /* Emir sonucu bildirimi: BIST'te hisse takası T+2'dir (işlem günü + 2 iş günü). */
 let orderT: any;
@@ -1005,7 +1038,7 @@ function bind(root: any = main){
     render();
     break;
    }
-   case 'cancel': {const o=state.orders.find((x: any)=>x.id===a.id); if(o&&o.status==='pending'){o.status='cancelled'; const back=o.side==='buy'?o.price*o.qty*(1+commRate*(1+bsmv)):0; state.cash+=back; afterCancel(o,back);} toast('Emir iptal edildi'); state.keepScroll=true; render(); break;}
+   case 'cancel': { void (async()=>{ try{ await api('/orders/'+a.id+'/cancel',{method:'POST',body:{}}); await syncServer(); toast('Emir iptal edildi'); }catch(e: any){ toast((e&&e.body&&e.body.message)||'Emir iptal edilemedi'); } state.keepScroll=true; render(); })(); break; }
    case 'goto': state.nav=[]; go(a.v,{push:false}); break;
    case 'hide': state.hidden=!state.hidden; render(); break;
    case 'theme': toggleTheme(); break;
@@ -1026,7 +1059,6 @@ function bind(root: any = main){
    case 'addAcct': addAccount(); break;
    case 'remember': state.auth.remember=!state.auth.remember; saveAuth(); el.classList.toggle('on',state.auth.remember); el.setAttribute('aria-checked',state.auth.remember); break;   // yazılan şifre kaybolmasın diye sayfa yeniden çizilmez
    case 'logout': logout(); break;
-   case 'askpw': state.auth.remember=!state.auth.remember; saveAuth(); render(); toast(state.auth.remember?'Girişte şifre sorulmayacak':'Her girişte şifre sorulacak'); break;
    case 'market': if(a.k==='news'){ go('news'); } else { state.mkt=a.k; go('mkt'); } break;
    case 'orders': state.pfTab='orders'; state.nav=[]; go('portfolio',{push:false}); break;
    case 'toast': toast(a.msg); break;
@@ -1121,33 +1153,15 @@ const ibanFmt = (s: any) => s.replace(/\s/g, '').replace(/(.{4})/g, '$1 ').trim(
 const ibanMask = (s: any) => { const x = s.replace(/\s/g, ''); return x.slice(0, 4) + ' **** **** **** ' + x.slice(-6, -2) + ' ' + x.slice(-2); };
 
 function seedState() {
-  const sample = state.sampleData !== false;
-  if (!Array.isArray(state.watch)) state.watch = sample ? ['THYAO', 'ASELS', 'KCHOL', 'BIMAS', 'SISE', 'EREGL'] : [];
+  if (!Array.isArray(state.watch)) state.watch = [];
   if (!Array.isArray(state.alarms)) state.alarms = [];
-  if (!Array.isArray(state.notes)) state.notes = sample ? [
-    { id: 'n1', ts: nowTs() - 36e5 * 5, k: 'order', title: 'THYAO alış emriniz gerçekleşti', body: '50 adet · ₺311,75', read: true },
-    { id: 'n2', ts: nowTs() - 36e5 * 30, k: 'info', title: 'Hoş geldiniz', body: 'Emirleriniz fiyat koşulu oluşunca gerçekleşir.', read: false },
-  ] : [{ id: 'n0', ts: nowTs(), k: 'info', title: 'Hesabınız açıldı', body: 'Hesabınıza ₺100.000 bakiye tanımlandı.', read: false }];
-  if (!Array.isArray(state.banks)) state.banks = sample ? [{ id: 'b1', bank: 'Ziraat Bankası', iban: ibanMake('00010', '1234567890123456'), holder: state.auth.user }] : [];
+  if (!Array.isArray(state.notes)) state.notes = Array.isArray(state.localNotes) ? state.localNotes : [];
+  if (!Array.isArray(state.banks)) state.banks = [];
   if (!Array.isArray(state.tickets)) state.tickets = [];
   if (!Array.isArray(state.ipoReq)) state.ipoReq = [];
   if (!Array.isArray(state.newsOff)) state.newsOff = [];
   if (!state.notif) state.notif = { orders: true, alarms: true, news: true, campaigns: false, email: true, sms: false };
-  if (!Array.isArray(state.ledger)) {
-    const L = [];
-    if (sample) {
-      const t0 = new Date(2026, 8, 15, 10, 12).getTime();
-      L.push({ id: 'l1', ts: t0, type: 'deposit', title: 'Para yatırma', sub: 'Ziraat Bankası', amount: 150000, status: 'Onaylandı' });
-      L.push({ id: 'l2', ts: new Date(2026, 8, 18, 11, 5).getTime(), type: 'buy', title: 'EREGL alış', sub: '400 adet · ₺53,40', amount: -(400 * 53.40 * (1 + commRate * (1 + bsmv))), status: 'Gerçekleşti' });
-      L.push({ id: 'l3', ts: new Date(2026, 8, 19, 15, 22).getTime(), type: 'buy', title: 'THYAO alış', sub: '50 adet · ₺311,75', amount: -(50 * 311.75 * (1 + commRate * (1 + bsmv))), status: 'Gerçekleşti' });
-      L.push({ id: 'l4', ts: new Date(2026, 8, 20, 9, 58).getTime(), type: 'block', title: 'ASELS alış emri teminatı', sub: '200 adet · ₺118,00', amount: -(200 * 118 * (1 + commRate * (1 + bsmv))), status: 'Bekliyor', oid: 'MRD-2609-0421' });
-      L.push({ id: 'l5', ts: new Date(2026, 8, 23, 21, 43).getTime(), type: 'deposit', title: 'Para yatırma', sub: 'Ziraat Bankası', amount: 500, status: 'Onaylandı' });
-    } else {
-      L.push({ id: 'l0', ts: nowTs(), type: 'deposit', title: 'Başlangıç bakiyesi', sub: 'Hesap açılışı', amount: START_CASH, status: 'Tanımlandı' });
-    }
-    state.ledger = L.sort((a?: any, b?: any) => b.ts - a.ts);
-  }
-  state.firstRunToast = state.firstRun;
+  if (!Array.isArray(state.ledger)) state.ledger = [];
 }
 
 /* ---------- hesap hareketleri ---------- */
@@ -1200,36 +1214,8 @@ function afterCancel(o?: any, back?: any) {
 }
 /* Bekleyen emirler: fiyat koşulu oluşunca gerçekleşir.
    Limit alış: fiyat ≤ limit · Limit satış: fiyat ≥ limit · Stop alış: fiyat ≥ tetik · Stop satış: fiyat ≤ tetik. */
-function matchOrders() {
-  let changed = false;
-  state.orders.filter((o: any) => o.status === 'pending').forEach((o: any) => {
-    const st = stock(o.s); if (!st) return;
-    const p = st.p, buy = o.side === 'buy';
-    const hit = o.type === 'limit' ? (buy ? p <= o.price : p >= o.price) : o.type === 'stop' ? (buy ? p >= o.price : p <= o.price) : true;
-    if (!hit) return;
-    const fillPx = o.type === 'limit' ? o.price : p, k = 1 + commRate * (1 + bsmv);
-    if (buy) {
-      const reserved = o.price * o.qty * k, actual = fillPx * o.qty * k;
-      state.cash += reserved - actual;
-      const h = holding(o.s); if (h) { h.cost = (h.cost * h.q + fillPx * o.qty) / (h.q + o.qty); h.q += o.qty; } else state.holdings.push({ s: o.s, q: o.qty, cost: fillPx });
-      const e = state.ledger.find((x: any) => x.oid === o.id && x.type === 'block');
-      if (e) { e.type = 'buy'; e.title = `${o.s} alış`; e.amount = -actual; e.status = 'Gerçekleşti'; e.sub = `${fmt(o.qty, 0)} adet · ${tl(fillPx)}`; e.ts = nowTs(); }
-    } else {
-      const h = holding(o.s);
-      if (!h || h.q < o.qty) { o.status = 'cancelled'; note('order', `${o.s} satış emri iptal edildi`, 'Yeterli pay kalmadı'); changed = true; return; }
-      const gross = fillPx * o.qty, fee = gross * commRate * (1 + bsmv);
-      recordSale(o.s, o.qty, h.cost, fillPx);
-      h.q -= o.qty; if (h.q <= 0) state.holdings = state.holdings.filter((x: any) => x !== h);
-      state.cash += gross - fee;
-      addLedger({ type: 'sell', title: `${o.s} satış`, sub: `${fmt(o.qty, 0)} adet · ${tl(fillPx)}`, amount: gross - fee, status: 'Gerçekleşti', oid: o.id });
-    }
-    o.status = 'filled'; o.filled = o.qty; o.price = +fillPx.toFixed(2);
-    note('order', `${o.s} ${buy ? 'alış' : 'satış'} emriniz gerçekleşti`, `${fmt(o.qty, 0)} adet · ${tl(fillPx)}`, true);
-    orderToast(o);
-    changed = true;
-  });
-  return changed;
-}
+/* Emirler sunucuda (e-şube) eşleşir/onaylanır; bu istemci yalnızca durumu okur. */
+function matchOrders() { return false; }
 
 /* ---------- bildirimler ---------- */
 function note(k?: any, title?: any, body?: any, push?: any) {
@@ -1252,8 +1238,8 @@ function openNotes() {
   const icon = (k: any) => k === 'order' ? ic.swap : k === 'alarm' ? ic.bell : ic.bulb;
   sheet(`<h3>Bildirimler</h3><div class="sub2">${list.filter((x: any) => !x.read).length} okunmamış bildirim</div>
    <div class="setlist">${list.length ? list.map((n: any) => `<div class="setrow note2 ${n.read ? '' : 'unread'}"><span class="ic">${icon(n.k)}</span><div class="t"><b>${esc(n.title)}</b><span>${esc(n.body || '')}</span><span class="tm">${dtstr(n.ts)}</span></div></div>`).join('') : '<div class="empty">Bildiriminiz yok.</div>'}</div>
-   <div class="acts"><button class="btn ghost" data-act="notesClear" ${list.length ? '' : 'disabled'}>Tümünü sil</button><button class="btn primary" data-act="notifSet">Bildirim ayarları</button></div>`, 'Bildirimler', 'tall');
-  list.forEach((n: any) => n.read = true); paintBell(); persistApp();
+   <div class="acts"><button class="btn ghost" data-act="closeSheet">Kapat</button><button class="btn primary" data-act="notifSet">Bildirim ayarları</button></div>`, 'Bildirimler', 'tall');
+  const hadUnread = list.some((n: any) => !n.read); list.forEach((n: any) => n.read = true); paintBell(); persistApp(); if (hadUnread) void api('/notifications/read', { method: 'POST', body: {} }).catch(() => {});
 }
 function openNotifSet() {
   const n = state.notif, sw = (k?: any, t?: any, s?: any) => `<div class="setrow"><div class="t"><b>${t}</b><span>${s}</span></div><button class="sw ${n[k] ? 'on' : ''}" data-act="nset" data-k="${k}" role="switch" aria-checked="${!!n[k]}" aria-label="${t}"><i></i></button></div>`;
@@ -1336,7 +1322,6 @@ function openInst(k?: any) {
   const line = pts.map((v?: any, i?: any) => (i ? 'L' : 'M') + (i / (pts.length - 1) * W).toFixed(1) + ' ' + (H - 6 - (v - mn) / ((mx - mn) || 1) * (H - 12)).toFixed(1)).join(' ');
   sheet(`<div class="sym" style="margin-top:0"><div class="avatar" style="background:var(--g700)">${esc(r.k.slice(0, 4))}</div><div class="t"><b>${esc(r.k)}</b><span>${esc(r.n)}</span></div></div>
    <div class="price num" style="margin-top:12px"><span class="big" style="font-size:28px">${esc(r.v)}</span>${r.c != null ? `<span class="chip ${cls(r.c)}">${arrow(r.c)} ${pct(r.c)}</span>` : r.note ? `<span class="chip neutral">${esc(r.note)}</span>` : ''}</div>
-   <svg class="ichart" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none" aria-label="${esc(r.k)} grafiği"><path d="${line} L${W} ${H} L0 ${H} Z" fill="${col}" opacity=".12"/><path d="${line}" fill="none" stroke="${col}" stroke-width="2.2" stroke-linejoin="round"/></svg>
    <div class="stats num"><div><span>Kategori</span><b>${esc(d.t)}</b></div><div><span>Kaynak</span><b>${esc(d.s.split(' · ')[0])}</b></div></div>
    <div class="acts"><button class="btn primary" data-act="closeSheet">Kapat</button></div>`, r.k);
 }
@@ -1354,105 +1339,94 @@ function openIpo(r?: any) {
 
 /* ---------- para yatırma / çekme ve banka hesapları ---------- */
 function openMoney(kind?: any) {
-  const dep = kind === 'deposit', banks = state.banks;
-  if (!banks.length) {
-    return sheet(`<h3>${dep ? 'Para Yatır' : 'Para Çek'}</h3><div class="sub2">Önce bir banka hesabı ekleyin; ${dep ? 'yatırma' : 'çekme'} işlemi bu hesap üzerinden yapılır.</div>
-     <div class="acts"><button class="btn ghost" data-act="closeSheet">Vazgeç</button><button class="btn primary" data-act="bankAdd" data-then="${kind}">${ic.plus} Banka hesabı ekle</button></div>`, dep ? 'Para yatır' : 'Para çek');
-  }
-  sheet(`<h3>${dep ? 'Para Yatır' : 'Para Çek'}</h3><div class="sub2">${dep ? 'Tutar hesabınıza hemen geçer.' : 'Kullanılabilir bakiye: <b class="num">' + tl(state.cash) + '</b>'}</div>
+  const dep = kind === 'deposit', u: any = MeridyenAuth.current();
+  if (u && u.role !== 'admin' && u.status !== 'approved') return openKyc();
+  const sys = state.sysBanks || [], saved = (state.banks || [])[0];
+  if (dep && !sys.length) return sheet(`<h3>Para Yatır</h3><div class="sub2">Şu an aktif bir transfer hesabı tanımlı değil. Lütfen daha sonra tekrar deneyin.</div><div class="acts"><button class="btn primary" data-act="closeSheet">Tamam</button></div>`, 'Para yatır');
+  sheet(`<h3>${dep ? 'Para Yatır' : 'Para Çek'}</h3><div class="sub2">${dep ? 'Aşağıdaki hesaba havale / EFT yapın; talebiniz onaylanınca tutar bakiyenize eklenir.' : 'Çekilebilir bakiye: <b class="num">' + tl(state.withdrawable) + '</b> · Asgari çekim ₺500 · Hesap sahibi adınızla aynı olmalı.'}</div>
    <div class="field"><label for="mAmt">Tutar (TL)</label><input class="inp num" id="mAmt" inputmode="decimal" placeholder="0,00" autofocus><div class="ferr2" id="mAmtErr"></div></div>
-   <div class="pcts">${(dep ? [1000, 5000, 10000, 50000] : [25, 50, 75, 100]).map((v: any) => `<button data-act="mQuick" data-v="${v}" data-k="${kind}">${dep ? '₺' + fmt(v, 0) : '%' + v}</button>`).join('')}</div>
-   <div class="field"><label>${dep ? 'Gönderen hesap' : 'Alıcı hesap'}</label>
-    <div class="setlist banksel">${banks.map((b?: any, i?: any) => `<label class="setrow rad"><input type="radio" name="mBank" value="${b.id}" ${i === 0 ? 'checked' : ''}><span class="ic">${ic.bank}</span><div class="t"><b>${esc(b.bank)}</b><span class="num">${ibanMask(b.iban)}</span></div></label>`).join('')}</div></div>
-   <div class="acts"><button class="btn ghost" data-act="closeSheet">Vazgeç</button><button class="btn ${dep ? 'buy' : 'primary'}" data-act="mSave" data-k="${kind}">${dep ? ic.down + ' Yatır' : ic.up + ' Çek'}</button></div>`, dep ? 'Para yatır' : 'Para çek');
+   <div class="pcts">${(dep ? [1000, 5000, 10000, 50000] : [25, 50, 75, 100]).map((x: any) => `<button data-act="mQuick" data-v="${x}" data-k="${kind}">${dep ? '₺' + fmt(x, 0) : '%' + x}</button>`).join('')}</div>
+   ${dep ? `<div class="field"><label>Havale yapılacak hesap</label><div class="setlist banksel">${sys.map((b: any, i: number) => `<label class="setrow rad"><input type="radio" name="mBank" value="${esc(b.iban)}" ${i === 0 ? 'checked' : ''}><span class="ic">${ic.bank}</span><div class="t"><b>${esc(b.bank_name)} · ${esc(b.account_holder)}</b><span class="num">${ibanFmt(b.iban)}</span></div></label>`).join('')}</div></div>`
+   : `<div class="field"><label for="wdHolder">Hesap sahibi</label><input class="inp" id="wdHolder" value="${esc(saved ? saved.holder : state.auth.user)}" maxlength="120"></div>
+   <div class="field"><label for="wdBank">Banka</label><input class="inp" id="wdBank" value="${esc(saved ? saved.bank : '')}" maxlength="120" placeholder="Banka adı"></div>
+   <div class="field"><label for="wdIban">IBAN</label><input class="inp num" id="wdIban" value="${esc(saved ? ibanFmt(saved.iban) : '')}" maxlength="32" placeholder="TR00 0000 0000 0000 0000 0000 00" autocomplete="off" spellcheck="false"><div class="ferr2" id="wdIbanErr"></div></div>`}
+   <div class="err" id="mErr"></div>
+   <div class="acts"><button class="btn ghost" data-act="closeSheet">Vazgeç</button><button class="btn ${dep ? 'buy' : 'primary'}" data-act="mSave" data-k="${kind}">${dep ? ic.down + ' Talep oluştur' : ic.up + ' Çekim talebi ver'}</button></div>`, dep ? 'Para yatır' : 'Para çek');
   moneyField($id('mAmt'));
 }
-function saveMoney(kind?: any) {
-  const dep = kind === 'deposit', v = +parseNum($id('mAmt').value).toFixed(2);
-  const b = state.banks.find((x: any) => x.id === (layerEl().querySelector('input[name="mBank"]:checked') || {}).value);
-  if (!(v > 0)) return ferr('mAmtErr', 'Tutar girin.');
-  if (dep && v > 10000000) return ferr('mAmtErr', 'Tek seferde en fazla ₺10.000.000 yatırabilirsiniz.');
-  if (!dep && v > state.cash) return ferr('mAmtErr', `Kullanılabilir bakiyeniz ${tl(state.cash)}.`);
-  if (!b) return toast('Bir banka hesabı seçin');
-  state.cash += dep ? v : -v;
-  addLedger({ type: kind, title: dep ? 'Para yatırma' : 'Para çekme', sub: b.bank, amount: dep ? v : -v, status: dep ? 'Onaylandı' : 'Gönderildi' });
-  note('info', dep ? `${tl(v)} hesabınıza geçti` : `${tl(v)} ${b.bank} hesabınıza gönderildi`, ibanMask(b.iban));
-  closeSheet(); state.keepScroll = true; render(); toast(dep ? `${tl(v)} hesabınıza yatırıldı` : `${tl(v)} çekme talimatı verildi`);
+let moneyBusy = false;
+async function saveMoney(kind?: any) {
+  if (moneyBusy) return;
+  const dep = kind === 'deposit', amt = +parseNum($id('mAmt').value).toFixed(2);
+  ferr('mAmtErr', ''); if ($id('mErr')) $id('mErr').textContent = '';
+  if (!(amt > 0)) return ferr('mAmtErr', 'Tutar girin.');
+  if (!dep && amt < 500) return ferr('mAmtErr', 'Asgari çekim tutarı ₺500.');
+  if (!dep && amt > state.withdrawable + 0.001) return ferr('mAmtErr', `Çekilebilir bakiyeniz ${tl(state.withdrawable)}.`);
+  const body: any = { request_type: kind, amount: amt };
+  if (dep) { const r = layerEl().querySelector('input[name="mBank"]:checked'); if (!r) return toast('Bir hesap seçin'); body.account_ref = r.value; }
+  else { body.account_holder = v('wdHolder').trim(); body.bank_name = v('wdBank').trim(); body.iban = v('wdIban').replace(/\s/g, '').toUpperCase(); if (!body.iban) return ferr('wdIbanErr', 'IBAN girin.'); }
+  moneyBusy = true;
+  try {
+    await api('/money-requests', { method: 'POST', body });
+    await syncServer();
+    const m = (state.money || []).slice().sort((a: any, b: any) => b.id - a.id)[0];
+    if (dep && m) {
+      const b = (state.sysBanks || []).find((x: any) => x.iban.replace(/\s/g, '') === String(m.account_ref).replace(/\s/g, '')) || {};
+      sheet(`<h3>Talebiniz alındı</h3><div class="sub2">${tl(amt)} tutarını aşağıdaki hesaba gönderin. Açıklama alanına transfer kodunu yazmayı unutmayın; talebiniz kontrol edilince bakiyenize eklenir.</div>
+       <div class="summary num"><div><span>Banka</span><b>${esc(b.bank_name || '')}</b></div><div><span>Hesap sahibi</span><b>${esc(b.account_holder || '')}</b></div><div><span>IBAN</span><b>${ibanFmt(m.account_ref)}</b></div><div><span>Açıklama (kod)</span><b>${esc(m.transfer_code)}</b></div></div>
+       <div class="acts"><button class="btn ghost" data-act="copy" data-v="${esc(m.account_ref)}">${ic.copy} IBAN kopyala</button><button class="btn primary" data-act="copy" data-v="${esc(m.transfer_code)}">${ic.copy} Kodu kopyala</button></div>
+       <div class="acts"><button class="btn ghost" data-act="closeSheet">Kapat</button></div>`, 'Havale bilgileri');
+    } else { closeSheet(); toast('Çekim talebiniz alındı'); }
+    state.keepScroll = true; render();
+  } catch (e: any) { const msg = (e && e.body && e.body.message) || 'Talep oluşturulamadı.'; if ($id('mErr')) $id('mErr').textContent = msg; else toast(msg); }
+  finally { moneyBusy = false; }
 }
 function openBanks() {
-  sheet(`<h3>Banka Hesaplarım</h3><div class="sub2">Para yatırma ve çekme yalnızca kendi adınıza kayıtlı hesaplarla yapılır.</div>
-   <div class="setlist">${state.banks.length ? state.banks.map((b: any) => `<div class="setrow"><span class="ic">${ic.bank}</span><div class="t"><b>${esc(b.bank)}</b><span class="num">${ibanFmt(b.iban)}</span><span>${esc(b.holder)}</span></div><button class="iconbtn sm" data-act="bankDel" data-id="${b.id}" aria-label="${esc(b.bank)} hesabını sil">${ic.trash}</button></div>`).join('') : '<div class="empty">Kayıtlı banka hesabınız yok.</div>'}</div>
-   <div class="acts"><button class="btn ghost" data-act="closeSheet">Kapat</button><button class="btn primary" data-act="bankAdd">${ic.plus} Hesap ekle</button></div>`, 'Banka hesaplarım');
-}
-function openBankAdd(then?: any) {
-  sheet(`<h3>Banka Hesabı Ekle</h3><div class="sub2">Hesap sahibi: <b>${esc(state.auth.user)}</b></div>
-   <div class="field"><label for="bkIban">IBAN</label><input class="inp num" id="bkIban" placeholder="TR00 0000 0000 0000 0000 0000 00" autocomplete="off" spellcheck="false" maxlength="32" autofocus><div class="ferr2" id="bkIbanErr"></div></div>
-   <div class="hint2" id="bkName">Banka, IBAN'dan otomatik tanınır.</div>
-   <div class="field"><label for="bkAlias">Hesap adı (isteğe bağlı)</label><input class="inp" id="bkAlias" placeholder="Maaş hesabım" maxlength="40"></div>
-   <div class="acts"><button class="btn ghost" data-act="${then ? then : 'banks'}">Geri</button><button class="btn primary" data-act="bankSave" data-then="${then || ''}">Kaydet</button></div>`, 'Banka hesabı ekle');
-  const el = $id('bkIban');
-  el.addEventListener('input', () => {
-    let v = el.value.toUpperCase().replace(/[^A-Z0-9]/g, ''); if (v && !v.startsWith('T')) v = 'TR' + v.replace(/^R/, '');
-    el.value = ibanFmt(v.slice(0, 26)); ferr('bkIbanErr', '');
-    const bank = BANKS[v.slice(4, 9)]; $id('bkName').textContent = v.length >= 9 ? (bank ? 'Banka: ' + bank : 'Banka kodu tanınmadı') : "Banka, IBAN'dan otomatik tanınır.";
-  });
-}
-function saveBank(then?: any) {
-  const v = $id('bkIban').value.replace(/\s/g, '').toUpperCase(), alias = $id('bkAlias').value.trim();
-  if (!v) return ferr('bkIbanErr', 'IBAN girin.');
-  if (!/^TR\d{24}$/.test(v)) return ferr('bkIbanErr', 'IBAN TR ile başlamalı ve 26 karakter olmalı.');
-  if (!ibanValid(v)) return ferr('bkIbanErr', 'IBAN kontrol basamakları hatalı. Numarayı kontrol edin.');
-  if (state.banks.some((b: any) => b.iban === v)) return ferr('bkIbanErr', 'Bu IBAN zaten kayıtlı.');
-  const bank = (alias ? alias + ' · ' : '') + (BANKS[v.slice(4, 9)] || 'Banka ' + v.slice(4, 9));
-  state.banks.push({ id: uid('B'), bank, iban: v, holder: state.auth.user });
-  persistApp(); toast('Banka hesabı eklendi');
-  if (then) openMoney(then); else openBanks();
+  sheet(`<h3>Banka Hesaplarım</h3><div class="sub2">Para çekme talebinde kullandığınız hesaplar burada listelenir; yeni hesap çekim talebi sırasında eklenir.</div>
+   <div class="setlist">${state.banks.length ? state.banks.map((b: any) => `<div class="setrow"><span class="ic">${ic.bank}</span><div class="t"><b>${esc(b.bank)}</b><span class="num">${ibanFmt(b.iban)}</span><span>${esc(b.holder)}</span></div></div>`).join('') : '<div class="empty">Kayıtlı banka hesabınız yok.</div>'}</div>
+   <div class="acts"><button class="btn primary" data-act="closeSheet">Kapat</button></div>`, 'Banka hesaplarım');
 }
 
 /* ---------- kişisel bilgiler, kimlik, güvenlik ---------- */
 function openPersonal() {
   const u = (MeridyenAuth.getUser(state.auth.no) || {}) as any;
-  const ph = (u.phone || '').replace(/^(\d{3})(\d{3})(\d{2})(\d{2})$/, '$1 $2 $3 $4');
-  sheet(`<h3>Kişisel Bilgiler</h3><div class="sub2">Müşteri No: <b class="num">${esc(u.no)}</b> · Kayıt: ${u.createdAt ? dstr(Date.parse(u.createdAt)) : '—'}</div>
-   <div class="field"><label for="pfName">Ad soyad</label><input class="inp" id="pfName" value="${esc(u.name)}" autocomplete="name" maxlength="80"><div class="ferr2" id="pfNameErr"></div></div>
-   <div class="field"><label for="pfEmail">E-posta</label><input class="inp" id="pfEmail" type="email" value="${esc(u.email)}" autocomplete="email" maxlength="120"><div class="ferr2" id="pfEmailErr"></div></div>
-   <div class="field"><label for="pfPhone">Cep telefonu</label><input class="inp num" id="pfPhone" type="tel" value="${esc(ph)}" autocomplete="tel-national" maxlength="13"><div class="ferr2" id="pfPhoneErr"></div></div>
-   <div class="setrow"><div class="t"><b>Ticari ileti izni</b><span>Bülten ve kampanyalar için e-posta / SMS</span></div><button class="sw ${u.marketing ? 'on' : ''}" id="pfMkt" data-act="swOnly" role="switch" aria-checked="${!!u.marketing}" aria-label="Ticari ileti izni"><i></i></button></div>
-   <div class="err" id="pfErr"></div>
-   <div class="acts"><button class="btn ghost" data-act="closeSheet">Vazgeç</button><button class="btn primary" data-act="pfSave">Kaydet</button></div>`, 'Kişisel bilgiler');
-  const p = $id('pfPhone');
-  p.addEventListener('input', () => { const d = MeridyenAuth.normPhone(p.value).slice(0, 10); p.value = [d.slice(0, 3), d.slice(3, 6), d.slice(6, 8), d.slice(8, 10)].filter(Boolean).join(' '); });
-}
-async function savePersonal() {
-  ['pfNameErr', 'pfEmailErr', 'pfPhoneErr'].forEach((id: any) => ferr(id, ''));
-  const res = await MeridyenAuth.updateProfile(state.auth.no, { name: v('pfName'), email: v('pfEmail'), phone: v('pfPhone'), marketing: $id('pfMkt').getAttribute('aria-checked') === 'true' });
-  if (!res.ok) { const e = res.errors || {}; ferr('pfNameErr', e.name); ferr('pfEmailErr', e.email); ferr('pfPhoneErr', e.phone); if (e.form) $id('pfErr').textContent = e.form; return; }
-  state.auth.user = res.user.name; state.accounts = MeridyenAuth.accounts();
-  state.banks.forEach((b: any) => b.holder = res.user.name);
-  closeSheet(); state.keepScroll = true; render(); toast('Bilgileriniz güncellendi');
+  const row = (t: string, x: string) => `<div class="setrow"><div class="t"><b>${t}</b><span>${esc(x || '—')}</span></div></div>`;
+  sheet(`<h3>Kişisel Bilgiler</h3><div class="sub2">Bilgileriniz e-şube kaydınızla aynıdır. Değişiklik için destek talebi oluşturun.</div>
+   <div class="setlist">${row('Müşteri No', u.no)}${row('Ad soyad', u.name)}${row('E-posta', u.email)}${row('Cep telefonu', u.phone)}${row('Kayıt tarihi', u.createdAt ? dstr(Date.parse(u.createdAt)) : '')}${row('Hesap durumu', u.statusLabel)}</div>
+   <div class="acts"><button class="btn primary" data-act="closeSheet">Kapat</button></div>`, 'Kişisel bilgiler');
 }
 const v = (id: any) => ($id(id) || {}).value || '';
 function openKyc() {
-  const u = (MeridyenAuth.getUser(state.auth.no) || {}) as any;
-  const row = (t?: any, s?: any) => `<div class="setrow"><span class="ic lime">${ic.checkS}</span><div class="t"><b>${t}</b><span>${s}</span></div></div>`;
-  sheet(`<h3>Kimlik Doğrulama</h3><div class="sub2">Hesabınız işlem yapmaya açık.</div>
-   <div class="setlist">${row('Kimlik bilgileri', esc(u.name) + ' · onaylandı')}${row('Cep telefonu', '+90 ' + MeridyenAuth.maskPhone(u.phone) + ' · doğrulandı')}${row('E-posta', esc(u.email) + ' · doğrulandı')}${row('Uygunluk testi', 'Pay piyasası işlemleri için uygun')}</div>
-   <div class="acts"><button class="btn primary" data-act="closeSheet">Tamam</button></div>`, 'Kimlik doğrulama');
+  const u = (MeridyenAuth.current() || {}) as any, ok = u.status === 'approved' || u.role === 'admin';
+  const row = (t?: any, x?: any, good?: any) => `<div class="setrow"><span class="ic ${good ? 'lime' : ''}">${good ? ic.checkS : ic.doc}</span><div class="t"><b>${t}</b><span>${esc(x)}</span></div></div>`;
+  sheet(`<h3>Kimlik Doğrulama</h3><div class="sub2">${ok ? 'Hesabınız onaylı; işlem yapabilirsiniz.' : 'Emir verebilmek ve para işlemi yapabilmek için kimlik belgenizin ön ve arka yüzünü yükleyin. Belgeler incelendikten sonra hesabınız onaylanır.'}</div>
+   <div class="setlist">${row('Hesap durumu', u.statusLabel || u.status, ok)}${row('Belge durumu', (u.kycStatusLabel || u.kycStatus) + (u.kycNote ? ' · ' + u.kycNote : ''), ok)}</div>
+   ${ok ? '' : `<div class="field"><label for="kfFront">Kimlik ön yüz</label><input class="inp" id="kfFront" type="file" accept="image/*,.pdf"></div>
+   <div class="field"><label for="kfBack">Kimlik arka yüz</label><input class="inp" id="kfBack" type="file" accept="image/*,.pdf"><div class="ferr2" id="kfErr"></div></div>`}
+   <div class="acts"><button class="btn ghost" data-act="closeSheet">Kapat</button>${ok ? '' : '<button class="btn primary" data-act="kycSave">Belgeleri gönder</button>'}</div>`, 'Kimlik doğrulama');
+}
+let kycBusy = false;
+async function saveKyc() {
+  if (kycBusy) return;
+  const f = $id('kfFront')?.files?.[0] || null, b = $id('kfBack')?.files?.[0] || null;
+  if (!f && !b) return ferr('kfErr', 'En az bir belge seçin.');
+  kycBusy = true; ferr('kfErr', '');
+  const r = await MeridyenAuth.uploadDocuments(f, b);
+  kycBusy = false;
+  if (!r.ok) return ferr('kfErr', r.error);
+  await syncServer(); closeSheet(); toast('Belgeleriniz incelemeye gönderildi'); state.keepScroll = true; render();
 }
 function openSecurity() {
   const u = (MeridyenAuth.getUser(state.auth.no) || {}) as any;
-  sheet(`<h3>Güvenlik</h3><div class="sub2">Son giriş: ${u.lastLogin ? dtstr(Date.parse(u.lastLogin)) : '—'}${u.prevLogin ? ' · Önceki: ' + dtstr(Date.parse(u.prevLogin)) : ''}</div>
+  sheet(`<h3>Güvenlik</h3><div class="sub2">Son giriş: ${u.lastLogin ? dtstr(Date.parse(String(u.lastLogin).replace(' ', 'T') + 'Z')) : '—'}</div>
    <div class="setlist">
-    <button data-act="pwChange"><span class="ic">${ic.lock}</span><div class="t"><b>Şifre değiştir</b><span>${u.pwChangedAt ? 'Son değişiklik ' + dstr(Date.parse(u.pwChangedAt)) : 'Şifrenizi düzenli olarak yenileyin'}</span></div>${ic.chev}</button>
-    <div class="setrow"><span class="ic">${ic.shield}</span><div class="t"><b>İki adımlı doğrulama</b><span>Girişte telefonunuza gelen 6 haneli kod istenir</span></div><button class="sw ${u.twoFA ? 'on' : ''}" data-act="twofa" role="switch" aria-checked="${!!u.twoFA}" aria-label="İki adımlı doğrulama"><i></i></button></div>
-    <div class="setrow"><span class="ic">${ic.lock}</span><div class="t"><b>Her girişte şifre sor</b><span>Uygulama her açıldığında giriş ekranı gelsin</span></div><button class="sw ${!state.auth.remember ? 'on' : ''}" data-act="askpw" role="switch" aria-checked="${!state.auth.remember}" aria-label="Her girişte şifre sor"><i></i></button></div>
-    <button data-act="delAcct" class="danger"><span class="ic rose">${ic.trash}</span><div class="t"><b>Hesabı kapat</b><span>Hesabınız ve bu cihazdaki tüm verileri silinir</span></div>${ic.chev}</button>
+    <button data-act="pwChange"><span class="ic">${ic.lock}</span><div class="t"><b>Şifre değiştir</b><span>Şifrenizi düzenli olarak yenileyin</span></div>${ic.chev}</button>
    </div>
    <div class="acts"><button class="btn primary" data-act="closeSheet">Kapat</button></div>`, 'Güvenlik');
 }
 function openPwChange() {
   const eye = (id: any) => `<button class="eye" type="button" data-act="eye" data-id="${id}" aria-label="Şifreyi göster">${ic.eye}</button>`;
-  sheet(`<h3>Şifre Değiştir</h3><div class="sub2">Yeni şifre en az 8 karakter olmalı, harf ve rakam içermeli.</div>
+  sheet(`<h3>Şifre Değiştir</h3><div class="sub2">Yeni şifre en az 10 karakter olmalı; büyük harf, küçük harf ve rakam içermeli.</div>
    <div class="field"><label for="pwCur">Mevcut şifre</label><div class="inpw"><input class="inp" id="pwCur" type="password" autocomplete="current-password" autofocus>${eye('pwCur')}</div><div class="ferr2" id="pwCurErr"></div></div>
    <div class="field"><label for="pwNew">Yeni şifre</label><div class="inpw"><input class="inp" id="pwNew" type="password" autocomplete="new-password">${eye('pwNew')}</div><div class="meter" id="pwMeter" data-s="0"><i></i><i></i><i></i><i></i></div><div class="ferr2" id="pwNewErr"></div></div>
    <div class="field"><label for="pwNew2">Yeni şifre tekrar</label><input class="inp" id="pwNew2" type="password" autocomplete="new-password"><div class="ferr2" id="pwNew2Err"></div></div>
@@ -1461,21 +1435,13 @@ function openPwChange() {
 }
 async function savePw() {
   ['pwCurErr', 'pwNewErr', 'pwNew2Err'].forEach((id: any) => ferr(id, ''));
-  const res = await MeridyenAuth.changePassword(state.auth.no, v('pwCur'), v('pwNew'), v('pwNew2'));
-  if (!res.ok) return ferr({ current: 'pwCurErr', next: 'pwNewErr', confirm: 'pwNew2Err' }[res.field] || 'pwCurErr', res.error);
-  note('info', 'Şifreniz değiştirildi', 'Bu işlemi siz yapmadıysanız hemen şifrenizi yenileyin.');
+  const cur = v('pwCur'), nw = v('pwNew'), nw2 = v('pwNew2');
+  if (!cur) return ferr('pwCurErr', 'Mevcut şifrenizi yazın.');
+  const bad = V.password(nw); if (bad) return ferr('pwNewErr', bad);
+  if (nw !== nw2) return ferr('pwNew2Err', 'Şifreler aynı değil.');
+  const res = await MeridyenAuth.changePassword(cur, nw);
+  if (!res.ok) return ferr(/mevcut|eski/i.test(res.error) ? 'pwCurErr' : 'pwNewErr', res.error);
   openSecurity(); toast('Şifreniz değiştirildi');
-}
-function openDelAcct() {
-  sheet(`<h3>Hesabı Kapat</h3><div class="sub2">Bu işlem geri alınamaz. Hesabınız, portföyünüz ve hesap hareketleriniz bu cihazdan silinir.</div>
-   <div class="field"><label for="delPw">Onaylamak için şifreniz</label><input class="inp" id="delPw" type="password" autocomplete="current-password" autofocus><div class="ferr2" id="delPwErr"></div></div>
-   <div class="acts"><button class="btn ghost" data-act="security">Vazgeç</button><button class="btn sell" data-act="delSave">Hesabı kapat</button></div>`, 'Hesabı kapat');
-}
-async function saveDel() {
-  if (DEMO_MODE) return ferr('delPwErr', 'Bu ekranda hesap kapatılamaz.');
-  const res = await MeridyenAuth.deleteAccount(state.auth.no, v('delPw'));
-  if (!res.ok) return ferr('delPwErr', res.error);
-  state.auth.in = false; topNav('/');
 }
 
 /* ---------- sözleşmeler, yardım, referans, yükleme, hakkında ---------- */
@@ -1500,7 +1466,7 @@ const FAQ: any = [
   ['Borsa hangi saatlerde açık?', 'Pay piyasasında sürekli işlem hafta içi 10:00 ile 18:00 arasındadır.'],
   ['Limit emrim neden gerçekleşmedi?', 'Limit alış emri fiyat limitinize ya da altına inince, limit satış emri limitinize ya da üstüne çıkınca gerçekleşir. Bekleyen emirlerinizi Portföy > Emirler\'den izleyip iptal edebilirsiniz.'],
   ['Komisyon ne kadar?', 'İşlem tutarının %0,1\'i ve bu komisyonun %5\'i kadar BSMV. Onay ekranında ayrıntılı gösterilir.'],
-  ['Para yatırma ne kadar sürer?', 'Tutar hemen hesabınıza geçer. Önce Banka hesaplarım\'dan kendi adınıza kayıtlı bir IBAN ekleyin.'],
+  ['Para yatırma ne kadar sürer?', 'Havale / EFT yaptıktan sonra talebiniz kontrol edilir ve onaylanınca bakiyenize eklenir. Para çekme hesabı adınıza kayıtlı olmalıdır.'],
   ['Fiyat alarmı nasıl kurulur?', 'Hisse sayfasındaki zil simgesine dokunun, seviyeyi yazın. Fiyat o seviyeye ulaşınca bildirim gelir.'],
 ];
 function openHelp() {
@@ -1512,19 +1478,20 @@ function openHelp() {
    <div class="acts"><button class="btn ghost" data-act="closeSheet">Kapat</button><button class="btn primary" data-act="tkSave">Talep gönder</button></div>
    ${state.tickets.length ? `<div class="slab">Taleplerim</div><div class="setlist">${state.tickets.map((t: any) => `<div class="setrow"><span class="ic">${ic.help}</span><div class="t"><b>${esc(t.sub)} · #${t.no}</b><span>${dtstr(t.ts)} · ${t.status}</span><span>${esc(t.msg.slice(0, 80))}${t.msg.length > 80 ? '…' : ''}</span></div></div>`).join('')}</div>` : ''}`, 'Yardım ve destek', 'tall');
 }
-function saveTicket() {
-  const msg = v('tkMsg').trim();
+async function saveTicket() {
+  const msg = v('tkMsg').trim(), u: any = MeridyenAuth.current() || {};
   if (msg.length < 10) return ferr('tkMsgErr', 'Mesajınız en az 10 karakter olmalı.');
-  const t = { id: uid('T'), no: String(Math.floor(100000 + Math.random() * 900000)), ts: nowTs(), sub: v('tkSub'), msg, status: 'Alındı' };
-  state.tickets.unshift(t); note('info', `Destek talebiniz alındı · #${t.no}`, t.sub);
-  persistApp(); openHelp(); toast(`Talebiniz alındı · #${t.no}`);
+  try {
+    const r: any = await api('/contact', { method: 'POST', body: { full_name: u.name, email: u.email, phone: u.phone, subject: v('tkSub'), message: msg } });
+    state.tickets.unshift({ id: uid('T'), no: r.reference, ts: nowTs(), sub: v('tkSub'), msg, status: 'Alındı' });
+    persistApp(); openHelp(); toast(`Talebiniz alındı · ${r.reference}`);
+  } catch (e: any) { ferr('tkMsgErr', (e && e.body && e.body.message) || 'Talep gönderilemedi.'); }
 }
-function refCode() { return 'MRD' + state.auth.no.slice(-5); }
+function refCode() { return state.auth.no; }
 function openReferral() {
-  const code = refCode(), text = `Meridyen Yatırım'da hesap aç, ilk ay komisyonsuz işlem yap. Davet kodum: ${code}`;
-  sheet(`<h3>Arkadaşını Davet Et</h3><div class="sub2">Davet kodunuzla hesap açan her arkadaşınız ve siz bir ay komisyonsuz işlem yaparsınız.</div>
+  const code = refCode(), text = `Meridyen Yatırım'da hesap aç. Davet kodum: ${code}`;
+  sheet(`<h3>Arkadaşını Davet Et</h3><div class="sub2">Arkadaşlarınız kayıt sırasında davet kodunuzu girebilir.</div>
    <div class="refbox"><span>Davet kodunuz</span><b class="num">${code}</b></div>
-   <div class="stats num"><div><span>Davet edilen</span><b>0</b></div><div><span>Kazanılan</span><b>0 ay</b></div></div>
    <div class="acts"><button class="btn ghost" data-act="copy" data-v="${esc(code)}">${ic.copy} Kodu kopyala</button><button class="btn primary" data-act="share" data-v="${esc(text)}">Paylaş</button></div>`, 'Referans');
 }
 function openInstall() {
@@ -1539,7 +1506,7 @@ function openInstall() {
 function openAbout() {
   sheet(`<h3>Uygulama Hakkında</h3><div class="sub2">Meridyen Yatırım</div>
    <div class="stats num"><div><span>Sürüm</span><b>1.0.0</b></div><div><span>Android</span><b>0.1.0</b></div><div><span>Platform</span><b>Web</b></div><div><span>Durum</span><b>Güncel</b></div></div>
-   <div class="acts"><button class="btn ghost" data-act="resetDemo">Verileri sıfırla</button><button class="btn primary" data-act="closeSheet">Kapat</button></div>`, 'Uygulama hakkında');
+   <div class="acts"><button class="btn primary" data-act="closeSheet">Kapat</button></div>`, 'Uygulama hakkında');
 }
 
 /* ---------- eylemler ---------- */
@@ -1562,52 +1529,27 @@ function extraAct(act?: any, a?: any, el?: any) {
     }
     case 'alDel': state.alarms = state.alarms.filter((x: any) => x.id !== a.id); persistApp(); openAlarm(a.s); break;
     case 'bell': openNotes(); break;
-    case 'notesClear': state.notes = []; persistApp(); openNotes(); break;
     case 'notifSet': openNotifSet(); break;
     case 'nset': state.notif[a.k] = !state.notif[a.k]; el.classList.toggle('on', state.notif[a.k]); el.setAttribute('aria-checked', state.notif[a.k]); persistApp(); break;
     case 'article': openArticle(a.i); break;
     case 'newsSrc': openNewsSrc(); break;
     case 'srcT': { const on = state.newsOff.includes(a.v); state.newsOff = on ? state.newsOff.filter((x: any) => x !== a.v) : [...state.newsOff, a.v]; el.classList.toggle('on', on); el.setAttribute('aria-checked', on); state.keepScroll = true; persistApp(); if (state.screen === 'news') { const y = main.scrollTop; main.innerHTML = renderNews(); bind(); main.scrollTop = y; } break; }
     case 'inst': openInst(a.k); break;
-    case 'ipoSave': {
-      const q = Math.floor(parseNum(v('ipoQ'))), px = +a.px, tot = q * px;
-      if (!(q > 0)) return ferr('ipoQErr', 'Adet girin.');
-      if (tot > state.cash) return ferr('ipoQErr', `Kullanılabilir bakiyeniz ${tl(state.cash)}.`);
-      const r = { id: uid('I'), k: a.k, q, px, ts: nowTs(), status: 'Talep alındı' };
-      state.ipoReq.push(r); state.cash -= tot;
-      addLedger({ type: 'ipo', title: `${a.k} halka arz talebi`, sub: `${fmt(q, 0)} lot · ${tl(px)}`, amount: -tot, status: 'Bekliyor', ipo: r.id });
-      note('info', `${a.k} halka arz talebiniz alındı`, `${fmt(q, 0)} lot · ${tl(tot)} bloke edildi`);
-      persistApp(); openIpo(instRow(a.k).r); toast('Talebiniz alındı'); break;
-    }
-    case 'ipoCancel': {
-      const r = state.ipoReq.find((x: any) => x.id === a.id); if (!r) break;
-      r.status = 'İptal'; state.cash += r.q * r.px;
-      const e = state.ledger.find((x: any) => x.ipo === r.id); if (e) e.status = 'İptal';
-      addLedger({ type: 'refund', title: `${r.k} talep iadesi`, sub: 'Halka arz talebi iptal edildi', amount: r.q * r.px, status: 'İade edildi' });
-      persistApp(); openIpo(instRow(a.k).r); toast('Talebiniz iptal edildi'); break;
-    }
     case 'deposit': case 'withdraw': openMoney(act); break;
-    case 'mQuick': { const el2 = $id('mAmt'); el2.value = a.k === 'deposit' ? fmt(+a.v) : fmt(Math.floor(state.cash * (+a.v) / 100 * 100) / 100); ferr('mAmtErr', ''); break; }
+    case 'mQuick': { const el2 = $id('mAmt'); el2.value = a.k === 'deposit' ? fmt(+a.v) : fmt(Math.floor(state.withdrawable * (+a.v)) / 100); ferr('mAmtErr', ''); break; }
     case 'mSave': saveMoney(a.k); break;
     case 'banks': openBanks(); break;
-    case 'bankAdd': openBankAdd(a.then); break;
-    case 'bankSample': { const el2 = $id('bkIban'); el2.value = ibanMake('00064', String(Math.floor(1e15 + Math.random() * 8e15))); el2.dispatchEvent(new Event('input')); break; }
-    case 'bankSave': saveBank(a.then); break;
-    case 'bankDel': state.banks = state.banks.filter((b: any) => b.id !== a.id); persistApp(); openBanks(); toast('Banka hesabı silindi'); break;
     case 'ledger': openLedger('all'); break;
     case 'ledgerF': openLedger(a.v); break;
     case 'ledgerCsv': ledgerCsv(); break;
     case 'personal': openPersonal(); break;
     case 'swOnly': { const on = el.getAttribute('aria-checked') !== 'true'; el.setAttribute('aria-checked', on); el.classList.toggle('on', on); break; }
-    case 'pfSave': savePersonal(); break;
     case 'kyc': openKyc(); break;
+    case 'kycSave': saveKyc(); break;
     case 'security': openSecurity(); break;
     case 'pwChange': openPwChange(); break;
     case 'pwSave': savePw(); break;
     case 'eye': { const i = $id(a.id); i.type = i.type === 'password' ? 'text' : 'password'; break; }
-    case 'twofa': { const u = MeridyenAuth.getUser(state.auth.no); if (!u) break; void MeridyenAuth.setTwoFA(state.auth.no, !u.twoFA).then((r: any) => { if (!r.ok) { toast(r.error); return; } state.keepScroll = true; render(); openSecurity(); toast(r.user.twoFA ? 'İki adımlı doğrulama açıldı' : 'İki adımlı doğrulama kapatıldı'); }); break; }
-    case 'delAcct': openDelAcct(); break;
-    case 'delSave': saveDel(); break;
     case 'contracts': openContracts(); break;
     case 'contract': openContracts(a.i); break;
     case 'notifSet2': openNotifSet(); break;
@@ -1618,11 +1560,6 @@ function extraAct(act?: any, a?: any, el?: any) {
     case 'share': if (navigator.share) navigator.share({ text: a.v }).catch(() => {}); else (navigator.clipboard ? navigator.clipboard.writeText(a.v) : Promise.reject()).then(() => toast('Davet metni kopyalandı'), () => toast(a.v)); break;
     case 'install': openInstall(); break;
     case 'about': openAbout(); break;
-    case 'resetDemo': {
-      if (DEMO_MODE) break;
-      MeridyenAuth.saveState({ v: 0 }); MeridyenAuth.flushState();
-      toast('Hesap verileri sıfırlandı'); setTimeout(() => location.reload(), 900); break;
-    }
     case 'simToggle': MeridyenMarket.setEnabled(!MeridyenMarket.enabled()); state.keepScroll = true; render(); toast(MeridyenMarket.enabled() ? 'Canlı fiyatlar açık' : 'Canlı fiyatlar kapalı'); break;
     case 'nav': state.nav = []; go(a.v, { push: false }); break;
     case 'navOrders': state.pfTab = 'orders'; state.nav = []; go('portfolio', { push: false }); break;
@@ -1685,25 +1622,25 @@ export async function boot() {
   if (booted) return; booted = true;
   main = $id('main');
   $id('menu')!.addEventListener('click', (e: any) => { const b = e.target.closest('button'); if (!b) return; state.nav = []; go(b.dataset.screen, { push: false }); });
-  applyTheme(); applyFont();
-  if (!DEMO_MODE) {
-    const u = await MeridyenAuth.load();
-    if (!u) { openLogin(null); return; }
-    try { preloadedState = (await MeridyenAuth.loadState()).data; } catch { preloadedState = null; }
-    MeridyenAuth.onConflict((data: any) => { PERSIST_KEYS.forEach((k: any) => { if (data[k] !== undefined) state[k] = data[k]; }); state.keepScroll = true; render(); toast('Hesabınız başka bir oturumda güncellendi'); });
-  }
+  const u0 = await MeridyenAuth.load();
+  if (!u0) { openLogin(null); return; }
   await MeridyenMarket.refresh();
   loadAuth();
   if (!state.auth.in) { openLogin(null); return; }
-  seedState();
+  seedState(); applyTheme(); applyFont();
+  await syncServer();
   const h = (location.hash || '').replace('#', '');
   if (SCREENS.includes(h)) state.screen = h;
   render(); paintBell(); setTimeout(toTop, 0);
+  {
+    const cu: any = MeridyenAuth.current();
+    if (cu && cu.role !== 'admin' && cu.status !== 'approved') setTimeout(openKyc, 700);
+  }
   const tb = document.querySelector('.topbar');
   if (tb && !tb.querySelector('[data-bell]')) { const b = document.createElement('button'); b.className = 'iconbtn'; b.dataset.bell = ''; b.innerHTML = ic.bell; b.onclick = openNotes; tb.appendChild(b); paintBell(); }
-  window.addEventListener('pagehide', () => { persistApp(); MeridyenAuth.flushState(); });
-  document.addEventListener('visibilitychange', () => { if (document.hidden) { persistApp(); MeridyenAuth.flushState(); } });
+  window.addEventListener('pagehide', persistApp);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) persistApp(); else void syncServer().then((ch) => { if (ch) onMarketTick(); }); });
+  setInterval(() => { if (!document.hidden) void syncServer().then((ch) => { if (ch) onMarketTick(); }); }, 15000);
   matchMedia('(min-width: 1100px)').addEventListener('change', () => { paintShell(); if (state.screen === 'detail' || state.screen === 'ticket') drawChart(); });
-  if (state.firstRunToast) setTimeout(() => toast('Hesabınıza ₺100.000 bakiye tanımlandı'), 500);
   MeridyenMarket.onTick(onMarketTick); MeridyenMarket.start();
 }

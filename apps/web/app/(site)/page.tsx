@@ -1,7 +1,6 @@
 import type { Metadata } from 'next';
 import '@/styles/landing.css';
 import CostCalculator from '@/components/site/CostCalculator';
-import DevicePreview from '@/components/site/DevicePreview';
 import MarketStatus from '@/components/site/MarketStatus';
 import { IndexCards, MoversRows } from '@/components/site/MarketTables';
 import SiteHeader from '@/components/site/SiteHeader';
@@ -40,7 +39,6 @@ export default function LandingPage() {
                   <div><dt>Takas</dt><dd>T+2</dd></div>
                 </dl>
               </div>
-              <DevicePreview />
             </div>
           </div>
         </section>

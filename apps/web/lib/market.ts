@@ -4,7 +4,7 @@
  */
 import { INDICES, STOCKS } from './market-data';
 
-interface Snapshot { day: string; t: number; every: number; s: Record<string, [number, number, number]>; i: Record<string, number> }
+interface Snapshot { day: string; t: number; every: number; s: Record<string, [number, number, number, number?]>; i: Record<string, number>; ic?: Record<string, number> }
 
 const PREF = 'mrdyn.sim.v1';
 const fmtV = (pre: string, n: number, d: number) => pre + new Intl.NumberFormat('tr-TR', { minimumFractionDigits: d, maximumFractionDigits: d }).format(n);
@@ -28,12 +28,13 @@ function apply(m: Snapshot) {
   STOCKS.forEach((s) => {
     const v = m.s[s.s]; if (!v) return;
     if (v[0] !== s.p) s.prev = s.p;
-    s.p = v[0]; s.hi = v[1]; s.lo = v[2]; s.c = ((s.p - s.pc) / s.pc) * 100;
+    s.p = v[0]; s.hi = v[1]; s.lo = v[2];
+    if (typeof v[3] === 'number') { s.c = v[3]; s.pc = s.p / (1 + v[3] / 100); } else s.c = ((s.p - s.pc) / s.pc) * 100;
   });
   INDICES.forEach((i) => {
     const v = m.i[i.n];
     if (v == null || i._n == null) return;
-    i._n = v; i.c = ((v - (i._pc as number)) / (i._pc as number)) * 100; i.v = fmtV(i._pre || '', v, i._d ?? 2);
+    i._n = v; i.c = m.ic && typeof m.ic[i.n] === 'number' ? m.ic[i.n] : ((v - (i._pc as number)) / (i._pc as number)) * 100; i.v = fmtV(i._pre || '', v, i._d ?? 2);
   });
 }
 

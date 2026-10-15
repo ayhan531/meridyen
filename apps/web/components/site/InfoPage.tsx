@@ -1,6 +1,7 @@
 'use client';
 import { useState, type FormEvent } from 'react';
 import SiteHeader from './SiteHeader';
+import SiteFooter from './SiteFooter';
 import { PAGES } from './pages-data';
 
 function ContactForm() {
@@ -45,9 +46,7 @@ export default function InfoPage({ slug }: { slug: string }) {
         .info-form{display:grid;gap:14px;margin-top:20px}.info-form label{display:grid;gap:6px;font-weight:600;font-size:14px}.info-form input,.info-form select,.info-form textarea{font:inherit;padding:12px 14px;border:1px solid #c9d3cd;border-radius:12px;background:#fff;color:inherit;width:100%}.info-note{padding:12px 14px;border-radius:12px;font-size:14px}.info-note.ok{background:#e4f5ea;color:#17562e}.info-note.err{background:#fde8e6;color:#8a1c12}
         .info .btn{display:inline-flex;margin-right:8px;margin-top:6px}`}</style>
       </main>
-      <footer className="foot"><div className="wrap">
-        <div className="risk"><p>Burada yer alan bilgiler yatırım danışmanlığı kapsamında değildir. Pay piyasası işlemleri, yatırdığınız tutarın bir kısmını ya da tamamını kaybetme riski taşır.</p><p>© {new Date().getFullYear()} Meridyen Yatırım · <a href="/kurumsal">Hakkımızda</a> · <a href="/hizmetler">Hizmetler</a> · <a href="/ucretler">Ücretler</a> · <a href="/sss">SSS</a> · <a href="/iletisim">İletişim</a> · <a href="/sozlesmeler">Sözleşmeler</a></p></div>
-      </div></footer>
+      <SiteFooter />
     </>
   );
 }

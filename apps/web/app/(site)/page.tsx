@@ -166,7 +166,7 @@ export default function LandingPage() {
               <a className="brand" href="/"><span className="logo">M</span><span><b>Meridyen Yatırım</b><small>Borsa İstanbul işlem platformu</small></span></a>
               <p className="about">Pay piyasasında izleme, emir ve portföy takibini tek bir sade uygulamada toplar.</p>
             </div>
-            <div><h3>Platform</h3><ul><li><a href="/kurumsal">Hakkımızda</a></li><li><a href="/hizmetler">Hizmetler</a></li><li><a href="/ucretler">Ücretler</a></li><li><a href="#piyasalar">Piyasalar</a></li><li><a href="#uygulama">Uygulama</a></li><li><a href="#maliyet">Maliyet</a></li></ul></div>
+            <div><h3>Platform</h3><ul><li><a href="/kurumsal">Hakkımızda</a></li><li><a href="/hizmetler">Hizmetler</a></li><li><a href="/ucretler">Ücretler</a></li><li><a href="/blog">Blog</a></li><li><a href="#piyasalar">Piyasalar</a></li><li><a href="#uygulama">Uygulama</a></li><li><a href="#maliyet">Maliyet</a></li></ul></div>
             <div><h3>Hesap</h3><ul><li><a href="/giris">Giriş yap</a></li><li><a href="/kayit">Hesap aç</a></li></ul></div>
             <div><h3>Yardım</h3><ul><li><a href="/sss">Sık sorulanlar</a></li><li><a href="/iletisim">İletişim</a></li><li><a href="/sozlesmeler">Sözleşmeler</a></li><li><a href="/kayit#aydinlatma">Aydınlatma metni</a></li></ul></div>
           </div>

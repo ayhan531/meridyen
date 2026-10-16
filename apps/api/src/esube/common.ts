@@ -145,10 +145,10 @@ export const cfg = {
   indexRefreshSeconds: envInt('INDEX_REFRESH_SECONDS', 20),
   participationFeedUrl: process.env.PARTICIPATION_FEED_URL || 'https://www.borsaistanbul.com/datum/hisse_endeks_ds.csv',
   participationSyncSeconds: envInt('PARTICIPATION_SYNC_SECONDS', 21600),
-  pushSubject: process.env.PUSH_SUBJECT || 'https://ottoman-eggb.onrender.com',
+  pushSubject: process.env.PUSH_SUBJECT || 'https://meridyen-1.onrender.com',
   /** Render'da yerel disk kalıcı olmadığı için yüklenen dosyalar veritabanında saklanır. */
   cookieSecure: process.env.COOKIE_SECURE ? process.env.COOKIE_SECURE === 'true' : process.env.NODE_ENV === 'production',
-  seedTestUser: process.env.SEED_TEST_USER !== 'false',
+  seedTestUser: process.env.SEED_TEST_USER === 'true',
 };
 
 export const MARKET_URLS = [

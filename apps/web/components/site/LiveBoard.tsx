@@ -1,7 +1,8 @@
 'use client';
 import { useRef } from 'react';
 import { INDICES } from '@/lib/market-data';
-import { arrow, cls, pct } from './format';
+import { cls, pct } from './format';
+import { Tri } from './icons';
 import { useMarketTick, useSession } from './hooks';
 
 /** Giriş panelindeki canlı gösterge: endeksler, kurlar ve emtia. Değer değişince satır kısa süre vurgulanır. */
@@ -17,10 +18,11 @@ export default function LiveBoard() {
       <div className="board-hd">Canlı piyasa<span>{s ? s.label : ''}</span></div>
       <ul>
         {INDICES.map((x) => (
-          <li key={x.n}>
+          <li key={x.n} style={{ ['--w' as any]: Math.min(100, Math.abs(x.c) * 22) }}>
             <b>{x.n}</b>
             <span key={x.v} className={`v num${flash[x.n] ? ' fl' : ''}`}>{x.v}</span>
-            <span className={`c num ${cls(x.c)}`}>{x.v === '—' ? '' : `${arrow(x.c)} ${pct(x.c)}`}</span>
+            <span className={`c num ${cls(x.c)}`}>{x.v === '—' ? null : <><Tri up={x.c >= 0} /> {pct(x.c)}</>}</span>
+            {x.v !== '—' ? <i className={`heat ${cls(x.c)}`} /> : null}
           </li>
         ))}
       </ul>

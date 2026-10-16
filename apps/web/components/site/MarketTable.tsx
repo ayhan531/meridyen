@@ -1,7 +1,8 @@
 'use client';
 import { useMemo, useState } from 'react';
 import { INDICES, LIVE_LISTS, LOGO, STOCKS } from '@/lib/market-data';
-import { arrow, cls, fmt, pct, tl } from './format';
+import { cls, fmt, pct, tl } from './format';
+import { Tri } from './icons';
 import { useMarketTick } from './hooks';
 
 const num = (v: any, d = 2) => (typeof v === 'number' ? fmt(v, d) : String(v ?? '—'));
@@ -21,7 +22,7 @@ export function Movers() {
               <tr key={x.s}>
                 <td><div className="sym">{LOGO[x.s] ? <img src={LOGO[x.s]} alt="" width={34} height={34} loading="lazy" /> : <span className="ph" />}<span><b>{x.s}</b><em>{x.n}</em></span></div></td>
                 <td className="num">{tl(x.p)}</td>
-                <td><span className={`pch num ${cls(x.c)}`}>{arrow(x.c)} {pct(x.c)}</span></td>
+                <td><span className={`pch num ${cls(x.c)}`}><Tri up={x.c >= 0} /> {pct(x.c)}</span></td>
               </tr>
             )) : (n > 1 ? <tr><td colSpan={3}><div className="empty">Canlı veri şu an alınamıyor. Birazdan yeniden denenecek.</div></td></tr>
               : [0, 1, 2, 3, 4].map((i) => (<tr key={i}><td><div className="skel" style={{ width: 120 }} /></td><td><div className="skel" style={{ width: 70, marginLeft: 'auto' }} /></td><td><div className="skel" style={{ width: 70, marginLeft: 'auto' }} /></td></tr>)))}
@@ -39,7 +40,7 @@ export function IndexList() {
       <div className="panel-hd"><h3>Endeks, kur ve emtia</h3><span>Canlı</span></div>
       <ul className="idx-list">
         {INDICES.map((x) => (
-          <li key={x.n}><b>{x.n}</b><span className="v num">{x.v}</span><span className={`c num ${x.v === '—' ? '' : cls(x.c)}`}>{x.v === '—' ? '' : `${arrow(x.c)} ${pct(x.c)}`}</span></li>
+          <li key={x.n}><b>{x.n}</b><span className="v num">{x.v}</span><span className={`c num ${x.v === '—' ? '' : cls(x.c)}`}>{x.v === '—' ? '' : <><Tri up={x.c >= 0} /> {pct(x.c)}</>}</span></li>
         ))}
       </ul>
     </div>
@@ -87,7 +88,7 @@ export function MarketExplorer() {
                 <tr key={tab + x.s}>
                   <td><div className="sym">{tab === 'stock' ? (x.logo ? <img src={x.logo} alt="" width={34} height={34} loading="lazy" /> : <span className="ph" />) : null}<span><b>{x.s}</b><em>{x.n}</em></span></div></td>
                   <td className="num">{tab === 'stock' ? tl(Number(x.p)) : num(x.p, tab === 'viop' ? 2 : 4)}</td>
-                  <td><span className={`pch num ${cls(x.c)}`}>{arrow(x.c)} {pct(x.c)}</span></td>
+                  <td><span className={`pch num ${cls(x.c)}`}><Tri up={x.c >= 0} /> {pct(x.c)}</span></td>
                   {tab === 'stock' ? <td className="hide-s mute">{x.extra}</td> : null}
                 </tr>
               ))}

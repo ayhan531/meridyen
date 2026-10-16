@@ -421,14 +421,20 @@ export async function normalizeData(conn: Conn): Promise<void> {
   );
 }
 
+/** Hazır (örnek) banka hesabı eklenmez; gerçek IBAN'ı yönetici girer. Önceki sürümlerden kalan Ottoman örnek hesabı pasifleştirilir. */
 export async function seedSystemBankAccounts(conn: Conn): Promise<void> {
-  const row = await conn.get('SELECT COUNT(*) AS c FROM system_bank_accounts');
-  if (row && row.c) return;
-  await conn.run(
-    `INSERT INTO system_bank_accounts (bank_name, account_holder, iban, branch_name, description, is_active, sort_order, created_at)
-     VALUES (?, ?, ?, ?, ?, 1, 1, ?)`,
-    ['Ottoman Bank', 'Ottoman Yatırım A.Ş.', 'TR330006100519786457841326', 'Dijital Şube', '', now()],
-  );
+  await conn.run("UPDATE system_bank_accounts SET is_active=0 WHERE iban='TR330006100519786457841326'");
+}
+
+/** Eski kurulumlardan kalan Ottoman marka ayarlarını Meridyen'e çevirir (yönetici sonradan değiştirdiyse dokunmaz). */
+export async function migrateBrand(conn: Conn): Promise<void> {
+  const map: [string, string, string][] = [
+    ['brand_name', 'Ottoman', 'Meridyen'], ['brand_descriptor', 'E-Şube', 'Yatırım'], ['brand_symbol', 'O', 'M'],
+    ['brand_tagline', 'Yatırımın zarif hali', "Borsa İstanbul'a sade ve şeffaf bir hat"],
+    ['ui_primary_color', '#7657ff', '#1E4B41'], ['ui_accent_color', '#139477', '#28604F'], ['ui_font_family', 'Inter', 'Manrope'],
+    ['official_email', 'destek@ottoman.local', ''], ['content_support_email', 'destek@ottoman.local', ''],
+  ];
+  for (const [k, from, to] of map) await conn.run('UPDATE system_settings SET setting_value=? WHERE setting_key=? AND setting_value=?', [to, k, from]);
 }
 
 export async function seedSystemSettings(conn: Conn): Promise<void> {
@@ -446,18 +452,18 @@ export async function seedSystemSettings(conn: Conn): Promise<void> {
     official_mersis_number: env.OFFICIAL_MERSIS_NUMBER ?? '',
     official_address: env.OFFICIAL_ADDRESS ?? '',
     official_phone: env.OFFICIAL_PHONE ?? '',
-    official_email: env.OFFICIAL_EMAIL ?? 'destek@ottoman.local',
+    official_email: env.OFFICIAL_EMAIL ?? '',
     official_license_text: env.OFFICIAL_LICENSE_TEXT ?? '',
-    brand_name: 'Ottoman',
-    brand_descriptor: 'E-Şube',
-    brand_symbol: 'O',
-    brand_tagline: 'Yatırımın zarif hali',
-    ui_primary_color: '#7657ff',
-    ui_accent_color: '#139477',
+    brand_name: 'Meridyen',
+    brand_descriptor: 'Yatırım',
+    brand_symbol: 'M',
+    brand_tagline: "Borsa İstanbul'a sade ve şeffaf bir hat",
+    ui_primary_color: '#1E4B41',
+    ui_accent_color: '#28604F',
     ui_danger_color: '#ef3340',
-    ui_font_family: 'Inter',
+    ui_font_family: 'Manrope',
     ui_radius: '18',
-    content_support_email: env.OFFICIAL_EMAIL ?? 'destek@ottoman.local',
+    content_support_email: env.OFFICIAL_EMAIL ?? '',
     content_support_phone: env.OFFICIAL_PHONE ?? '',
     credit_monthly_interest_rate: '2.5',
     credit_loan_term_months: '12',
@@ -491,8 +497,8 @@ export async function seedAdmin(conn: Conn): Promise<void> {
   if (!/^\d{11}$/.test(adminTc)) adminTc = '11111111110';
   const password = process.env.ADMIN_PASSWORD || 'Admin12345';
   const [salt, digest] = await hashPassword(password);
-  const name = (process.env.ADMIN_NAME || 'Ottoman Yönetici').slice(0, 120);
-  const email = (process.env.ADMIN_EMAIL || 'admin@ottoman.local').slice(0, 120);
+  const name = (process.env.ADMIN_NAME || 'Meridyen Yönetici').slice(0, 120);
+  const email = (process.env.ADMIN_EMAIL || 'admin@meridyen.local').slice(0, 120);
   const existing = await conn.get('SELECT id FROM users WHERE tc=?', [adminTc]);
   if (existing) {
     await conn.run(
@@ -522,8 +528,8 @@ export async function seedTestUser(conn: Conn): Promise<void> {
   if (!/^\d{11}$/.test(testTc)) testTc = '22222222220';
   const existing = await conn.get('SELECT id FROM users WHERE tc=?', [testTc]);
   const password = env.TEST_USER_PASSWORD || 'User12345';
-  const fullName = (env.TEST_USER_NAME ?? 'Ottoman Test Kullanıcı').slice(0, 120);
-  const email = (env.TEST_USER_EMAIL ?? 'test@ottoman.local').slice(0, 120);
+  const fullName = (env.TEST_USER_NAME ?? 'Meridyen Test Kullanıcı').slice(0, 120);
+  const email = (env.TEST_USER_EMAIL ?? 'test@meridyen.local').slice(0, 120);
   const phone = (env.TEST_USER_PHONE ?? '05550000000').slice(0, 40);
   const city = (env.TEST_USER_CITY ?? 'Istanbul').slice(0, 80);
   const district = (env.TEST_USER_DISTRICT ?? 'Merkez').slice(0, 80);
@@ -576,6 +582,7 @@ export async function initDb(): Promise<void> {
     await seedMarketStatus(conn);
     await seedSystemBankAccounts(conn);
     await seedSystemSettings(conn);
+    await migrateBrand(conn);
     await seedParticipationIndex(conn);
   });
 }

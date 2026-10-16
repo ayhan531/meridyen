@@ -1,5 +1,5 @@
 /**
- * Hesap ve oturum işlemleri: e-şube (ottoman) sistemiyle aynıdır — T.C. kimlik no + şifre, onaylı müşteri,
+ * Hesap ve oturum işlemleri: e-şube sistemiyle aynıdır — T.C. kimlik no + şifre, onaylı müşteri,
  * bakiye / emir / para talepleri aynı veritabanından. Oturum httpOnly çerezde tutulur.
  */
 import { api, ApiFail } from './api';

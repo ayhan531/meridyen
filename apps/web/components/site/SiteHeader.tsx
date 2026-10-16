@@ -23,12 +23,13 @@ const LINKS = [['/piyasalar', 'Piyasalar'], ['/platform', 'Platform'], ['/ucretl
 export default function SiteHeader() {
   const path = usePathname() || '/';
   const [scrolled, setScrolled] = useState(false);
+  const [prog, setProg] = useState(0);
   const [open, setOpen] = useState(false);
   const [dd, setDd] = useState<string | null>(null);
   const [me, setMe] = useState<User | null>(null);
 
   useEffect(() => {
-    const f = () => setScrolled(window.scrollY > 8); f();
+    const f = () => { setScrolled(window.scrollY > 8); const m = document.documentElement.scrollHeight - window.innerHeight; setProg(m > 0 ? Math.min(1, window.scrollY / m) : 0); }; f();
     window.addEventListener('scroll', f, { passive: true });
     const esc = (e: KeyboardEvent) => { if (e.key === 'Escape') { setOpen(false); setDd(null); } };
     const away = (e: MouseEvent) => { if (!(e.target as HTMLElement).closest('.dd')) setDd(null); };
@@ -73,6 +74,7 @@ export default function SiteHeader() {
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round">{open ? <path d="M6 6l12 12M18 6L6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}</svg>
         </button>
       </div>
+      <i className="prog" aria-hidden="true" style={{ transform: `scaleX(${prog})` }} />
     </header>
   );
 }

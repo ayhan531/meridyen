@@ -6,5 +6,5 @@ import '@/styles/corp.css';
 export const viewport: Viewport = { width: 'device-width', initialScale: 1, viewportFit: 'cover', themeColor: '#143630' };
 
 export default function SiteLayout({ children }: { children: ReactNode }) {
-  return children;
+  return (<>{children}<noscript><style>{'.rv,.rv>*{opacity:1!important;transform:none!important;filter:none!important}'}</style></noscript></>);
 }

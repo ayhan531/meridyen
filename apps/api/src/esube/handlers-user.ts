@@ -154,7 +154,7 @@ export async function apiSetupTwoFactor(ctx: Ctx): Promise<Reply> {
     const secret = b32encode(randomBytes(20));
     await conn.run('UPDATE users SET two_factor_secret=?, two_factor_enabled=0 WHERE id=?', [secret, user.id]);
     await conn.commit();
-    const issuer = quotePlus('Ottoman Yatırım');
+    const issuer = quotePlus('Meridyen Yatırım');
     const account = quotePlus(user.email);
     return ok(ctx, { secret, otpauth_url: `otpauth://totp/${issuer}:${account}?secret=${secret}&issuer=${issuer}&digits=6&period=30` });
   });
@@ -272,7 +272,7 @@ export async function apiNotifications(ctx: Ctx): Promise<Reply> {
 }
 
 const NOTIFICATION_EVENTS: Record<string, [string, string, string]> = {
-  installed: ['Uygulama eklendi', 'Ottoman e-şube ana ekranına eklendi; bildirimleri buradan takip edebilirsin.', 'genel'],
+  installed: ['Uygulama eklendi', 'Meridyen e-şube ana ekranınıza eklendi; bildirimleri buradan takip edebilirsiniz.', 'genel'],
 };
 
 export async function apiNotificationEvent(ctx: Ctx): Promise<Reply> {
@@ -340,7 +340,7 @@ export async function apiPushTest(ctx: Ctx): Promise<Reply> {
     const user = await ctx.requireUser(conn);
     const cihaz = Number((await conn.get('SELECT COUNT(*) AS n FROM push_subscriptions WHERE user_id=?', [user.id]))!.n);
     if (!cihaz) throw new HttpError(400, 'Bu hesapta kayıtlı cihaz yok');
-    await createNotification(conn, user.id, 'Bildirimler açık', 'Ottoman E-Şube bildirimleri bu cihazda çalışıyor.', 'genel');
+    await createNotification(conn, user.id, 'Bildirimler açık', 'Meridyen e-şube bildirimleri bu cihazda çalışıyor.', 'genel');
     await conn.commit();
     return ok(ctx, { ok: true, cihaz });
   });
@@ -471,7 +471,7 @@ export async function apiPublicConfig(ctx: Ctx): Promise<Reply> {
     return ok(ctx, {
       company,
       branding: {
-        name: s.brand_name ?? 'Ottoman',
+        name: s.brand_name ?? 'Meridyen',
         descriptor: s.brand_descriptor ?? 'ÖZEL PORTFÖY & YATIRIM',
         symbol: s.brand_symbol ?? 'A',
         logo_url: s.brand_logo_url ?? '/favicon.svg',
@@ -481,7 +481,7 @@ export async function apiPublicConfig(ctx: Ctx): Promise<Reply> {
         danger: s.ui_danger_color ?? '#ef4444',
         font: s.ui_font_family ?? 'Inter',
         radius: s.ui_radius ?? '16',
-        support_email: s.content_support_email ?? s.official_email ?? 'destek@ottoman.local',
+        support_email: s.content_support_email ?? s.official_email ?? '',
         support_phone: s.content_support_phone ?? s.official_phone ?? '0850 888 7000',
       },
       company_information_complete: ['name', 'registry_number', 'address', 'phone', 'email', 'license_text'].every((k) => pyBool((company as any)[k])),

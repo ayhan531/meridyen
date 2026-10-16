@@ -124,7 +124,7 @@ export default function RegisterForm() {
         {!done ? (
           <div className="formbox">
             <h2>Hesap aç</h2>
-            <p className="sub">Meridyen ve Ottoman E-Şube aynı hesabı kullanır. Tüm alanlar zorunludur.</p>
+            <p className="sub">Bilgilerinizi eksiksiz girin; hesabınız kimlik belgeniz incelendikten sonra onaylanır. Tüm alanlar zorunludur.</p>
             <form onSubmit={submit} noValidate>
               {inp('full_name', 'Ad soyad', { autoComplete: 'name', maxLength: 80, placeholder: 'Ayşe Yılmaz' })}
               {inp('tc', 'T.C. kimlik no', { inputMode: 'numeric', maxLength: 11, autoComplete: 'username', placeholder: '11 haneli' }, (v) => v.replace(/\D/g, '').slice(0, 11))}

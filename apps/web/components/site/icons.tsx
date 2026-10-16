@@ -27,3 +27,8 @@ export function Ico({ n, size, className }: { n: keyof typeof P | string; size?:
     <svg viewBox="0 0 24 24" width={size} height={size} fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" className={className}>{P[n]}</svg>
   );
 }
+
+/** Değişim yönü üçgeni (yazı karakteri yerine çizgi). */
+export function Tri({ up }: { up: boolean }) {
+  return <svg className={`tri ${up ? 'u' : 'd'}`} viewBox="0 0 10 10" width="9" height="9" aria-hidden="true"><path d="M5 1.8l4 6.4H1z" fill="currentColor" /></svg>;
+}

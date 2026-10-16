@@ -314,14 +314,14 @@ export async function apiAdminProjectExport(ctx: Ctx): Promise<Reply> {
   const [settings, adminId] = await withConn(async (conn) => {
     const admin = await ctx.requireAdmin(conn);
     const s = await settingsMap(conn);
-    const brand = strip(s.brand_name ?? 'Ottoman');
+    const brand = strip(s.brand_name ?? 'Meridyen');
     const slug = brand.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'investment-platform';
     await audit(conn, admin.id, `export_project_${slug}`, 'system_settings', null);
     await conn.commit();
     return [s, admin.id] as const;
   });
   void adminId;
-  const brandName = strip(settings.brand_name ?? 'Ottoman');
+  const brandName = strip(settings.brand_name ?? 'Meridyen');
   const slug = brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'investment-platform';
   const root = PROJECT_ROOT();
   const excludedDirs = new Set(['node_modules', '.git', 'artifacts', '.gradle', 'build', '.next', 'dist', 'coverage']);

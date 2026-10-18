@@ -3,6 +3,9 @@ import CostCalculator from './CostCalculator';
 import ContactForm from './ContactForm';
 import Faq from './Faq';
 import { MarketExplorer } from './MarketTable';
+import Calculators from './Calculators';
+import Channels from './Channels';
+import NewsList from './NewsList';
 import { Ico } from './icons';
 import { DOCS, FAQ } from '@/lib/site-content';
 
@@ -10,6 +13,8 @@ export interface PageDef {
   title: string; lead: string; desc?: string; crumb?: [string, string][];
   cta?: boolean; body: ReactNode;
 }
+
+const GUIDES = (<><details id="hesap"><summary>Hesap nasıl açılır?</summary><div><ol className="guide"><li>Hesap aç sayfasında T.C. kimlik numaranız, iletişim bilgileriniz ve şifrenizle kayıt olun.</li><li>Yatırımcı profili sorularını yanıtlayın ve sözleşmeleri onaylayın.</li><li>E-şubede kimlik belgenizin ön ve arka yüzünün net fotoğrafını yükleyin.</li><li>Belgeleriniz incelendikten sonra hesabınız onaylanır; onaylanana kadar emir veremezsiniz.</li></ol></div></details><details id="yatirma"><summary>Para nasıl yatırılır?</summary><div><ol className="guide"><li>E-şubede para yatırma bölümünü açın ve tutarı girin.</li><li>Ekranda görünen sistem banka hesabına (IBAN) havale veya EFT yapın.</li><li>Açıklama alanına talebin transfer kodunu yazın.</li><li>Talebiniz “Beklemede” görünür; kontrol edilip onaylanınca tutar bakiyenize eklenir.</li></ol></div></details><details id="cekme"><summary>Para nasıl çekilir?</summary><div><ol className="guide"><li>E-şubede para çekme bölümünü açın.</li><li>Hesap sahibi adı, banka ve IBAN bilgisini girin. Hesap sizin adınıza kayıtlı olmalıdır.</li><li>Tutar en az 500 TL olmalıdır; çekilebilir bakiyeniz kadarını isteyebilirsiniz.</li><li>Talebiniz onaylanana kadar bekleyen çekme talebini iptal edebilirsiniz.</li></ol></div></details><details id="emir"><summary>Emir nasıl verilir?</summary><div><ol className="guide"><li>Hisseyi seçin ve Al veya Sat’a dokunun.</li><li>Piyasa ya da limit emri seçin; adedi ve limit emirde fiyatı girin.</li><li>Komisyon ve BSMV dahil toplamı kontrol edin.</li><li>Onaylayın. Piyasa emri anında gerçekleşir; limit emri fiyata ulaşılınca gerçekleşir.</li></ol></div></details><details id="iptal"><summary>Bekleyen emir nasıl iptal edilir?</summary><div><ol className="guide"><li>Portföy bölümünde Emirler sekmesini açın.</li><li>Bekleyen emrin üzerine dokunun.</li><li>İptal et’i seçip onaylayın; bloke edilen tutar serbest kalır.</li></ol></div></details><details id="sifre"><summary>Şifre nasıl değiştirilir veya yenilenir?</summary><div><ol className="guide"><li>Giriş yaptıysanız profil bölümünden mevcut şifrenizi ve yeni şifrenizi girerek değiştirin.</li><li>Şifrenizi unuttuysanız giriş sayfasındaki “Şifremi unuttum” bağlantısını kullanın.</li><li>Güvenliğiniz için şifrenizi kimseyle paylaşmayın.</li></ol></div></details><details id="ekle"><summary>Telefonun ana ekranına nasıl eklenir?</summary><div><ol className="guide"><li>Android / Chrome: tarayıcı menüsünden “Ana ekrana ekle”yi seçin.</li><li>iPhone / Safari: Paylaş simgesine dokunup “Ana Ekrana Ekle”yi seçin.</li><li>İsterseniz Android uygulamasını platform sayfasındaki bağlantıdan indirebilirsiniz.</li></ol></div></details></>);
 
 const Check = ({ n }: { n?: boolean }) => <Ico n={n ? 'x' : 'check'} />;
 
@@ -155,13 +160,15 @@ export const PAGES: Record<string, PageDef> = {
           ['list', 'Emirler', 'Piyasa ve limit emri, bekleyen emir listesi ve tek dokunuşla iptal.', ''],
           ['wallet', 'Para yatırma ve çekme', 'Talep oluşturun, durumunu izleyin; bekleyen çekme talebini iptal edin.', ''],
           ['doc', 'Hesap hareketleri', 'Tarih aralığı ve metinle filtrelenen tam işlem geçmişi.', 'w3'],
-          ['bell', 'Bildirimler', 'Emir ve para hareketlerinde uygulama içi ve tarayıcı bildirimi.', 'w3'],
+          ['bell', 'Bildirimler', 'Emir ve para hareketlerinde uygulama içi ve tarayıcı bildirimi.', 'w3 bildirim'],
           ['swap', 'Döviz çevirici', 'Canlı kurlarla farklı para birimleri arasında hızlı çeviri.', ''],
           ['user', 'Kimlik ve profil', 'Belge yükleme, profil fotoğrafı ve şifre değiştirme tek yerde.', ''],
           ['phone', 'Her cihazda', 'Telefon, tablet ve bilgisayarda aynı hesap; ekran boyutuna göre uyum sağlar.', ''],
-        ].map(([i, t, d, c]) => (<div key={t} className={`bn ${c}`}><Ico n={i} /><h3>{t}</h3><p>{d}</p></div>))}
+        ].map(([i, t, d, c]) => (<div key={t} className={`bn ${c.replace(' bildirim', '')}`} id={c.includes('bildirim') ? 'bildirim' : undefined}><Ico n={i} /><h3>{t}</h3><p>{d}</p></div>))}
       </div>
       <div className="callout" style={{ marginTop: 28 }}>Fon, VİOP ve döviz alım satımı çevrim içi değildir; bu ürünler için müşteri temsilcinizle iletişime geçin.</div>
+      <h2 id="kanallar" style={{ fontSize: 'var(--fs-h2)', margin: '64px 0 24px', scrollMarginTop: 100 }}>İşlem kanalları</h2>
+      <Channels />
     </div>),
   },
 
@@ -188,6 +195,7 @@ export const PAGES: Record<string, PageDef> = {
         ].map(([i, t, d]) => (<div key={t} className="tile"><Ico n={i} /><h3>{t}</h3><p>{d}</p></div>))}
       </div></section>
       <section className="pg"><div className="wrap prose">
+        <div className="callout" style={{ marginTop: 0, marginBottom: 32 }}><b>Dolandırıcılık uyarısı.</b> Meridyen çalışanları sosyal medya, mesajlaşma uygulaması veya telefonla şifrenizi istemez; “garantili kazanç” vaat etmez; kişisel bir hesaba para göndermenizi istemez. Para yatırma yalnızca e-şubede görünen sistem hesabına yapılır. Şüpheli bir durumda işlemi durdurun ve <a href="/iletisim">bize yazın</a>.</div>
         <h2>Sizden beklediklerimiz</h2>
         <ul>
           <li>Şifrenizi kimseyle paylaşmayın; Meridyen çalışanları şifrenizi asla istemez.</li>
@@ -243,5 +251,96 @@ export const PAGES: Record<string, PageDef> = {
       <h2>Teknik riskler</h2><p>İnternet bağlantısı, cihaz veya veri kaynağı kaynaklı kesintiler emirlerin gecikmesine ya da iletilememesine yol açabilir. Canlı fiyat doğrulanamadığında emirler geçici olarak kapatılır.</p>
       <p style={{ marginTop: 24 }}><a href="/sozlesmeler">Sözleşmeler ve formlar</a></p>
     </div></div>),
+  },
+
+  araclar: {
+    title: 'Yatırım araçları',
+    lead: 'Emir maliyetini, kâr ve zararı ve kur çevirisini önceden hesaplayın.',
+    body: (<div className="wrap pg">
+      <div className="split2">
+        <div className="sticky prose"><h2 id="maliyet">Hesaplayıcılar</h2><p>Hesaplar, pay piyasası komisyonu (%0,1) ve BSMV (komisyonun %5’i) ile yapılır; e-şubedeki onay ekranı aynı formülü kullanır.</p><p>Kurlar canlı veri kaynağından alınır ve bilgilendirme amaçlıdır.</p><div className="callout"><span id="doviz" /><span id="kar" />Sonuçlar tahmindir ve yatırım tavsiyesi değildir.</div></div>
+        <Calculators />
+      </div>
+    </div>),
+  },
+
+  haberler: {
+    title: 'Piyasa haberleri',
+    lead: 'Güncel ekonomi ve piyasa haberleri. Kaynak sayfaları yeni sekmede açılır.',
+    cta: true,
+    body: (<div className="wrap pg"><NewsList limit={40} full /><p className="mute" style={{ marginTop: 18, fontSize: 13.5 }}>Haberler üçüncü taraf kaynaklardan derlenir; Meridyen içeriklerin doğruluğundan sorumlu değildir ve haberler yatırım tavsiyesi değildir.</p></div>),
+  },
+
+  destek: {
+    title: 'Destek merkezi',
+    lead: 'En sık yapılan işlemler için adım adım rehberler. Aradığınızı bulamazsanız bize yazın.',
+    body: (<div className="wrap pg">
+      <div className="cols c3" style={{ marginBottom: 40 }}>
+        <a className="tile" href="/hesap-acma"><Ico n="user" /><h3>Hesap açma</h3><p>Gerekenler, süreç ve onay.</p></a>
+        <a className="tile" href="#yatirma"><Ico n="wallet" /><h3>Para işlemleri</h3><p>Yatırma, çekme ve talep takibi.</p></a>
+        <a className="tile" href="#emir"><Ico n="chart" /><h3>Emirler</h3><p>Emir verme ve iptal etme.</p></a>
+      </div>
+      <div className="split2">
+        <div className="sticky"><h2 style={{ fontSize: 'var(--fs-h2)' }}>Nasıl yapılır?</h2><p className="mute" style={{ marginTop: 12, maxWidth: '36ch' }}>Her başlığı açarak adımları görün.</p></div>
+        <div className="faq">{GUIDES}</div>
+      </div>
+      <div className="callout" style={{ marginTop: 40 }}>Başka bir konuda yardıma mı ihtiyacınız var? <a href="/iletisim">İletişim formunu</a> doldurun; mesajınıza referans numarası verilir. <a href="/sss">Sık sorulan sorulara</a> da göz atın.</div>
+    </div>),
+  },
+
+  'hesap-acma': {
+    title: 'Hesap açma',
+    lead: 'Kayıttan ilk emre kadar neye ihtiyacınız olduğunu ve sürecin nasıl ilerlediğini görün.',
+    cta: true,
+    body: (<>
+      <section className="pg"><div className="wrap cols c2">
+        <div className="tile"><Ico n="doc" /><h3>Hazırlamanız gerekenler</h3><ul><li>T.C. kimlik numaranız</li><li>Cep telefonu ve e-posta adresiniz</li><li>Kimlik belgenizin ön ve arka yüzünün net fotoğrafı</li><li>Para yatırma için adınıza kayıtlı bir banka hesabı</li></ul></div>
+        <div className="tile dk"><Ico n="shield" /><h3>Neden kimlik doğrulama?</h3><p>Her hesap, kimlik belgesi incelendikten sonra onaylanır. Bu, hem sizi hem hesabınızı korur; onaylanmamış hesaplarda alım satım açılmaz.</p></div>
+      </div></section>
+      <section className="pg"><div className="wrap">
+        <h2 style={{ fontSize: 'var(--fs-h2)', marginBottom: 28 }}>Süreç</h2>
+        <div className="cols c2">
+          <div className="tile"><h3>1. Kayıt</h3><p>Bilgilerinizi girin, yatırımcı profili sorularını yanıtlayın, risk bildirimi ve sözleşmeleri onaylayın. Kayıttan sonra e-şubeye otomatik giriş yaparsınız.</p></div>
+          <div className="tile"><h3>2. Belge yükleme</h3><p>Kimlik belgenizin ön ve arka yüzünü yükleyin. Fotoğrafın net, aydınlık ve kenarları görünür olması incelemeyi hızlandırır.</p></div>
+          <div className="tile"><h3>3. Onay</h3><p>Belgeleriniz incelenir. Onay durumunuzu e-şubede görürsünüz; sonuç hesabınızda bildirilir.</p></div>
+          <div className="tile"><h3>4. Bakiye ve ilk emir</h3><p>Para yatırma talebi oluşturun, onaylanınca bakiyeniz görünür. Ardından hisseyi seçip emrinizi verin.</p></div>
+        </div>
+        <div style={{ marginTop: 32, display: 'flex', gap: 12, flexWrap: 'wrap' }}><a className="btn primary" href="/kayit">Hesap aç</a><a className="btn ghost" href="/destek">Destek merkezi</a></div>
+      </div></section>
+      <section className="pg"><div className="wrap split2"><div className="sticky"><h2 style={{ fontSize: 'var(--fs-h2)' }}>Sık sorulanlar</h2></div><Faq items={FAQ.filter((x) => x.g === 'Hesap')} /></div></section>
+    </>),
+  },
+
+  gizlilik: {
+    title: 'Gizlilik ve çerezler',
+    lead: 'Hangi verileri, neden ve ne kadar süreyle kullandığımızı açıkça yazıyoruz.',
+    crumb: [['/sozlesmeler', 'Sözleşmeler']],
+    body: (<div className="wrap pg"><div className="prose">
+      <h2>Çerezler ve cihazda saklanan veriler</h2>
+      <ul>
+        <li><b>Oturum çerezi (meridyen_sid):</b> Giriş yaptığınızda oturumunuzu sürdürmek için kullanılır. Hizmetin çalışması için zorunludur; çıkış yaptığınızda sona erer.</li>
+        <li><b>Cihazda saklanan tercihler:</b> Tema, son görüntülediğiniz sekme gibi tercihler tarayıcınızın yerel depolamasında tutulur ve sunucuya gönderilmez.</li>
+        <li>Reklam veya üçüncü taraf takip çerezi kullanmıyoruz.</li>
+      </ul>
+      <h2>Kişisel veriler</h2>
+      <p>Hesap açılışı ve işlemler için topladığımız veriler <a href="/kvkk">KVKK aydınlatma metninde</a> açıklanmıştır.</p>
+      <h2>Bildirimler</h2>
+      <p>Tarayıcı bildirimlerini yalnızca siz izin verirseniz göndeririz ve e-şubeden istediğiniz zaman kapatabilirsiniz.</p>
+      <h2>İletişim formu</h2>
+      <p>Formda paylaştığınız bilgiler yalnızca talebinizi yanıtlamak için kullanılır. Şifrenizi veya kart bilgilerinizi mesajlarda paylaşmayın.</p>
+    </div></div>),
+  },
+
+  'site-haritasi': {
+    title: 'Site haritası',
+    lead: 'Meridyen Yatırım’daki tüm sayfalar.',
+    body: (<div className="wrap pg cols c3">
+      {[
+        ['Ürünler', [['/hizmetler', 'Ürünler ve hizmetler'], ['/ucretler', 'Komisyon ve ücretler'], ['/piyasalar', 'Canlı piyasalar'], ['/haberler', 'Piyasa haberleri'], ['/araclar', 'Yatırım araçları']]],
+        ['Platform ve destek', [['/platform', 'Platform'], ['/hesap-acma', 'Hesap açma'], ['/destek', 'Destek merkezi'], ['/sss', 'Sık sorulan sorular'], ['/blog', 'Yatırımcı rehberi'], ['/iletisim', 'İletişim']]],
+        ['Kurumsal ve yasal', [['/kurumsal', 'Hakkımızda'], ['/guvenlik', 'Güvenlik ve şeffaflık'], ['/sozlesmeler', 'Sözleşmeler'], ['/kvkk', 'KVKK aydınlatma metni'], ['/risk-bildirimi', 'Risk bildirimi'], ['/gizlilik', 'Gizlilik ve çerezler']]],
+        ['Hesap', [['/giris', 'Giriş yap'], ['/kayit', 'Hesap aç'], ['/app', 'E-şube']]],
+      ].map(([t, ls]: any) => (<div key={t} className="tile"><h3>{t}</h3><ul>{ls.map(([h, l]: string[]) => (<li key={h}><a href={h}>{l}</a></li>))}</ul></div>))}
+    </div>),
   },
 };

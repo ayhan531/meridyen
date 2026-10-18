@@ -1,5 +1,6 @@
 import '@/styles/site.css';
 import '@/styles/corp.css';
+import '@/styles/corp2.css';
 
 export default function NotFound() {
   return (

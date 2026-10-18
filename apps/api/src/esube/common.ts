@@ -122,7 +122,7 @@ export function envInt(key: string, dflt: number): number {
 }
 
 export const cfg = {
-  cookieName: 'ottoman_sid',
+  cookieName: 'meridyen_sid',
   sessionTtl: 60 * 60 * 24 * 7,
   dataDir: process.env.DATA_DIR || path.join(process.cwd(), 'data'),
   logoCacheDir: process.env.DATA_DIR ? path.join(process.env.DATA_DIR, 'logo-cache') : path.join(os.tmpdir(), 'esube-company-logos'),

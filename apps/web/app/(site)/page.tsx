@@ -1,14 +1,15 @@
 import type { Metadata } from 'next';
-import CostCalculator from '@/components/site/CostCalculator';
 import Faq from '@/components/site/Faq';
-import LiveBoard from '@/components/site/LiveBoard';
-import MarketStatus from '@/components/site/MarketStatus';
 import MarketTape from '@/components/site/MarketTape';
-import Meridian from '@/components/site/Meridian';
+import HeroCarousel from '@/components/site/HeroCarousel';
+import MarketTabs from '@/components/site/MarketTabs';
+import NewsList from '@/components/site/NewsList';
+import Channels from '@/components/site/Channels';
+import QuickActions from '@/components/site/QuickActions';
+import Calculators from '@/components/site/Calculators';
 import CountUp from '@/components/site/CountUp';
 import PhoneDemo from '@/components/site/PhoneDemo';
 import Reveal from '@/components/site/Reveal';
-import { IndexList, Movers } from '@/components/site/MarketTable';
 import SiteFooter from '@/components/site/SiteFooter';
 import SiteHeader from '@/components/site/SiteHeader';
 import Steps from '@/components/site/Steps';
@@ -55,8 +56,6 @@ const FEATURES: [string, string, string, string][] = [
   ['phone', 'Her cihazda aynı hesap', 'Telefon, tablet ve bilgisayarda aynı e-şube.', ''],
 ];
 
-const Words = ({ t }: { t: string }) => <>{t.split(' ').map((w, i) => (<span key={i} className="w"><span style={{ ['--i' as any]: i }}>{w}</span></span>))}</>;
-
 export default function LandingPage() {
   const posts = POSTS.slice(0, 3);
   const ld = { '@context': 'https://schema.org', '@type': 'FAQPage', mainEntity: FAQ.slice(0, 8).map((x) => ({ '@type': 'Question', name: x.q, acceptedAnswer: { '@type': 'Answer', text: x.a } })) };
@@ -64,24 +63,7 @@ export default function LandingPage() {
     <>
       <SiteHeader />
       <main id="icerik">
-        <section className="hero" aria-labelledby="heroTitle">
-          <div className="hero-grid" aria-hidden="true" />
-          <Meridian />
-          <div className="wrap hero-in">
-            <div className="hero-copy">
-              <MarketStatus className="mstat" />
-              <h1 id="heroTitle" aria-label="Borsa İstanbul'a sade ve şeffaf bir hat."><Words t="Borsa İstanbul'a sade ve şeffaf bir hat." /></h1>
-              <p className="lead">Piyasaları izleyin, emrinizi verin, portföyünüzü takip edin. Fiyatlar canlı kaynaktan gelir; komisyon ve vergi, onaylamadan önce kuruşu kuruşuna görünür.</p>
-              <div className="ctas">
-                <a className="btn lime" href="/kayit">Hesap aç</a>
-                <a className="btn ghost-d" href="/piyasalar">Canlı piyasalara bak</a>
-              </div>
-              <p className="fine">Yatırım ürünleri risk içerir; yatırdığınız tutarın bir kısmını ya da tamamını kaybedebilirsiniz.</p>
-            </div>
-            <div className="hero-art"><LiveBoard /></div>
-            <p className="hero-coord">İstanbul · 41,0082° K · 28,9784° D</p>
-          </div>
-        </section>
+        <HeroCarousel />
         <MarketTape />
 
         <section className="sec" style={{ paddingBlock: 'clamp(36px,5vw,64px) 0' }} aria-label="İşleyiş kuralları">
@@ -95,6 +77,10 @@ export default function LandingPage() {
           </div>
         </section>
 
+        <section className="sec" style={{ paddingBlock: 'clamp(28px,4vw,48px) 0' }} aria-label="Hızlı işlemler">
+          <div className="wrap"><Reveal><QuickActions /></Reveal></div>
+        </section>
+
         <section className="sec" id="piyasalar" aria-labelledby="mkT">
           <div className="wrap">
             <Reveal className="sec-head split">
@@ -104,7 +90,7 @@ export default function LandingPage() {
                 <a className="sec-link" href="/piyasalar">Tüm piyasaları gör</a>
               </div>
             </Reveal>
-            <Reveal className="mk" delay={120}><Movers /><IndexList /></Reveal>
+            <Reveal className="mk" delay={120}><MarketTabs /><div className="panel"><div className="panel-hd"><h3>Piyasa haberleri</h3><a className="sec-link" href="/haberler">Tümü</a></div><NewsList limit={6} /></div></Reveal>
           </div>
         </section>
 
@@ -129,7 +115,14 @@ export default function LandingPage() {
           </div>
         </section>
 
-        <section className="sec" aria-labelledby="stT">
+        <section className="sec" aria-labelledby="chT">
+          <div className="wrap">
+            <Reveal className="sec-head split"><h2 id="chT">Size uygun kanaldan işlem yapın</h2><p>Web, Android ve bildirimlerle e-şubeye nerede olursanız olun ulaşın.</p></Reveal>
+            <Reveal delay={100}><Channels /></Reveal>
+          </div>
+        </section>
+
+        <section className="sec tint" aria-labelledby="stT">
           <div className="wrap">
             <Reveal className="sec-head"><h2 id="stT">Hesap açıştan ilk emre dört adım</h2><p>Süreç baştan sona uygulama içinde ilerler; hangi aşamada olduğunuzu her zaman görürsünüz.</p></Reveal>
             <Steps>
@@ -175,12 +168,12 @@ export default function LandingPage() {
           <div className="wrap cost">
             <Reveal>
               <div className="sec-head" style={{ marginBottom: 0 }}>
-                <h2 id="ccT">Emir vermeden önce maliyeti hesaplayın</h2>
-                <p>Pay piyasasında işlem tutarının binde biri komisyon, komisyonun %5&apos;i kadar BSMV alınır. Başka kalem yoktur; uygulamada da aynı tutarı görürsünüz.</p>
-                <a className="sec-link" href="/ucretler" style={{ justifySelf: 'start' }}>Ücretlerin tamamı</a>
+                <h2 id="ccT">Karar vermeden önce hesaplayın</h2>
+                <p>Emir maliyetini, kâr ve zararı ve kur çevirisini önceden görün. Pay piyasasında işlem tutarının binde biri komisyon, komisyonun %5&apos;i kadar BSMV alınır.</p>
+                <a className="sec-link" href="/araclar" style={{ justifySelf: 'start' }}>Tüm araçlar</a>
               </div>
             </Reveal>
-            <Reveal delay={150}><CostCalculator /></Reveal>
+            <Reveal delay={150}><Calculators /></Reveal>
           </div>
         </section>
 
@@ -207,6 +200,14 @@ export default function LandingPage() {
                 </a>
               ))}
             </Reveal>
+          </div>
+        </section>
+
+        <section className="warn-band" aria-label="Güvenlik uyarısı">
+          <div className="wrap warn-in">
+            <Ico n="shield" size={34} />
+            <div><b>Dolandırıcılığa karşı dikkatli olun</b><p>Meridyen çalışanları sosyal medya, mesajlaşma uygulaması veya telefonla şifrenizi istemez, garantili kazanç vaat etmez ve kişisel bir hesaba para göndermenizi istemez. Para yatırma yalnızca e-şubede görünen sistem hesabına yapılır.</p></div>
+            <a className="btn ghost sm" href="/guvenlik">Güvenlik rehberi</a>
           </div>
         </section>
 

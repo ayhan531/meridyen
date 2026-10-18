@@ -216,11 +216,11 @@ a.tile:hover{transform:translateY(-3px);border-color:var(--g600);box-shadow:0 14
 :root[data-theme="light"] .hero .btn.lime:hover{background:var(--g700)}
 
 /* hero fotoğraf paneli (Pexels, ücretsiz lisans) */
-.hero::after{content:"";position:absolute;z-index:-1;pointer-events:none;background:url(/img/istanbul-sunset.jpg) 62% 45%/cover no-repeat;inset:auto 0 118px 0;height:46%;-webkit-mask-image:linear-gradient(180deg,transparent,#000 40%);mask-image:linear-gradient(180deg,transparent,#000 40%)}
+.hero::after{content:"";position:absolute;z-index:-1;pointer-events:none;background:url(/img/istanbul-green.jpg) 62% 45%/cover no-repeat;inset:auto 0 118px 0;height:46%;-webkit-mask-image:linear-gradient(180deg,transparent,#000 40%);mask-image:linear-gradient(180deg,transparent,#000 40%)}
 @media (min-width:981px){
   .hero::after{inset:0 0 118px 36%;height:auto;-webkit-mask-image:linear-gradient(90deg,transparent,#000 34%);mask-image:linear-gradient(90deg,transparent,#000 34%)}
 }
-:root[data-theme="light"] .hero::after{background-image:url(/img/istanbul-sunset.jpg)}
+:root[data-theme="light"] .hero::after{background-image:url(/img/istanbul-green.jpg)}
 .hero-nav{margin-top:0}
 @media (min-width:981px){
   .hero::after{-webkit-mask-image:linear-gradient(90deg,transparent,#000 34%),linear-gradient(180deg,#000 82%,transparent);mask-image:linear-gradient(90deg,transparent,#000 34%),linear-gradient(180deg,#000 82%,transparent);-webkit-mask-composite:source-in;mask-composite:intersect;background-position:70% 70%}

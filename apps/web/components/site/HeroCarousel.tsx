@@ -1,9 +1,8 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
-import LiveBoard from './LiveBoard';
 import MarketStatus from './MarketStatus';
 import PhoneDemo from './PhoneDemo';
-import Skyline from './Skyline';
+import Terminal from './Terminal';
 import Laptop from './Laptop';
 
 const SLIDES = [
@@ -25,7 +24,6 @@ export default function HeroCarousel() {
   }, [i, hold]);
   return (
     <section className="hero" aria-roledescription="carousel" aria-label="Öne çıkanlar" onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)} onFocus={() => setHold(true)} onBlur={() => setHold(false)}>
-      <Skyline />
       <div className="wrap hero-in">
         <div className="hero-copy">
           <MarketStatus className="mstat" />
@@ -41,7 +39,7 @@ export default function HeroCarousel() {
           <p className="fine">Yatırım ürünleri risk içerir; yatırdığınız tutarın bir kısmını ya da tamamını kaybedebilirsiniz.</p>
         </div>
         <div className="hero-art">
-          <div className={`vis${i === 0 ? ' on' : ''}`}><Laptop><LiveBoard /></Laptop></div>
+          <div className={`vis${i === 0 ? ' on' : ''}`}><Laptop url="meridyen.com/e-sube/islem"><Terminal /></Laptop><p className="fine ex">Örnek ekran; tutarlar gerçek veri değildir.</p></div>
           <div className={`vis${i === 1 ? ' on' : ''}`} aria-hidden={i !== 1}>
             <div className="costcard">
               <div className="cc-hd">Örnek alım<span>Pay piyasası</span></div>

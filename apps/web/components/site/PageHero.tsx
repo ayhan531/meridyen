@@ -1,10 +1,8 @@
 import type { ReactNode } from 'react';
-import Skyline from './Skyline';
 
 export default function PageHero({ title, lead, crumb, children }: { title: string; lead?: string; crumb?: [string, string][]; children?: ReactNode }) {
   return (
     <section className="phero">
-      <Skyline />
       <div className="wrap phero-in">
         <nav className="crumb" aria-label="Sayfa yolu"><a href="/">Ana sayfa</a>{(crumb || []).map(([h, t]) => (<span key={h}>/ <a href={h}>{t}</a></span>))}<span>/ {title}</span></nav>
         <h1>{title}</h1>

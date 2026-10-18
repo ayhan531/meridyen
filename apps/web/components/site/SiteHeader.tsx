@@ -1,4 +1,5 @@
 'use client';
+import ThemeToggle from './ThemeToggle';
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import { Account, type User } from '@/lib/account';
@@ -97,6 +98,7 @@ export default function SiteHeader() {
             <a href="/ucretler" onClick={close} aria-current={path === '/ucretler' ? 'page' : undefined}>Ücretler</a>
           </nav>
           <div className="hd-acts">
+            <ThemeToggle />
             {me ? (
               <>
                 <span className="chip lime" title={`Müşteri No ${me.no}`}>{me.name.split(' ')[0]}</span>

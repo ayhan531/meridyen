@@ -3,7 +3,8 @@ import { useEffect, useRef, useState } from 'react';
 import LiveBoard from './LiveBoard';
 import MarketStatus from './MarketStatus';
 import PhoneDemo from './PhoneDemo';
-import Waves from './Waves';
+import Skyline from './Skyline';
+import Laptop from './Laptop';
 
 const SLIDES = [
   { k: 'Canlı piyasa', t: "Borsa İstanbul'a sade ve şeffaf bir hat.", d: 'Piyasaları izleyin, emrinizi verin, portföyünüzü takip edin. Fiyatlar canlı kaynaktan gelir.', a: ['/kayit', 'Hesap aç'], b: ['/piyasalar', 'Canlı piyasalara bak'] },
@@ -24,8 +25,7 @@ export default function HeroCarousel() {
   }, [i, hold]);
   return (
     <section className="hero" aria-roledescription="carousel" aria-label="Öne çıkanlar" onMouseEnter={() => setHold(true)} onMouseLeave={() => setHold(false)} onFocus={() => setHold(true)} onBlur={() => setHold(false)}>
-      <div className="hero-grid" aria-hidden="true" />
-      <Waves />
+      <Skyline />
       <div className="wrap hero-in">
         <div className="hero-copy">
           <MarketStatus className="mstat" />
@@ -41,7 +41,7 @@ export default function HeroCarousel() {
           <p className="fine">Yatırım ürünleri risk içerir; yatırdığınız tutarın bir kısmını ya da tamamını kaybedebilirsiniz.</p>
         </div>
         <div className="hero-art">
-          <div className={`vis${i === 0 ? ' on' : ''}`}><LiveBoard /></div>
+          <div className={`vis${i === 0 ? ' on' : ''}`}><Laptop><LiveBoard /></Laptop></div>
           <div className={`vis${i === 1 ? ' on' : ''}`} aria-hidden={i !== 1}>
             <div className="costcard">
               <div className="cc-hd">Örnek alım<span>Pay piyasası</span></div>
@@ -63,7 +63,6 @@ export default function HeroCarousel() {
           </button>
         ))}
       </div>
-      <p className="hero-coord">İstanbul · 41,0082° K · 28,9784° D</p>
     </section>
   );
 }

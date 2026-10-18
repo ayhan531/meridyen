@@ -321,8 +321,6 @@ p{margin:0}
 
 /* ============ iç sayfa ============ */
 .phero{position:relative;overflow:hidden;background:var(--m900);color:var(--on-dark);isolation:isolate}
-.phero::before{content:"";position:absolute;right:max(-120px,-8vw);top:50%;width:520px;aspect-ratio:1;transform:translateY(-50%);border-radius:50%;border:1px dashed rgba(200,241,105,.3);box-shadow:0 0 0 60px rgba(200,241,105,.03),0 0 0 120px rgba(200,241,105,.02);z-index:-1}
-.phero::after{content:"";position:absolute;right:max(140px,calc(-8vw + 260px));top:0;bottom:0;width:1.5px;background:linear-gradient(transparent,rgba(200,241,105,.8) 35%,rgba(200,241,105,.8) 65%,transparent);z-index:-1;transform-origin:top;animation:grow 1.4s cubic-bezier(.5,0,.2,1) both}
 @keyframes grow{from{transform:scaleY(0)}to{transform:scaleY(1)}}
 .phero-in{padding-block:clamp(40px,6vw,76px) clamp(44px,6vw,80px)}
 .crumb{font-size:13.5px;color:var(--on-dark-mute);display:flex;gap:8px;flex-wrap:wrap;margin-bottom:22px}
@@ -332,7 +330,6 @@ p{margin:0}
 .phero .ctas{display:flex;flex-wrap:wrap;gap:12px;margin-top:26px}
 .phero .btn.ghost-d{background:transparent;color:#fff;border:1px solid rgba(234,241,238,.35)}
 .phero .btn.ghost-d:hover{border-color:#fff}
-@media (prefers-reduced-motion:reduce){.phero::after{animation:none}}
 
 .prose{max-width:70ch}
 .prose h2{font-size:clamp(1.35rem,2.2vw,1.75rem);margin:44px 0 12px}
@@ -493,5 +490,4 @@ p{margin:0}
 
 /* iç sayfa girişi: akan ışık */
 .phero{background:radial-gradient(50% 90% at 85% 40%,rgba(55,122,99,.45),transparent 70%),radial-gradient(40% 70% at 10% 0%,rgba(200,241,105,.1),transparent 70%),var(--m900)}
-.phero::before{animation:spinslow 80s linear infinite}
 @keyframes spinslow{to{transform:translateY(-50%) rotate(360deg)}}

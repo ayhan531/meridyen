@@ -191,10 +191,11 @@ a.tile:hover{transform:translateY(-3px);border-color:var(--g600);box-shadow:0 14
 /* ============ tema anahtarı ve temaya göre hero arka planı ============ */
 .theme-btn{width:40px;height:40px;border-radius:50%;display:grid;place-items:center;border:1px solid var(--line);background:var(--card);color:var(--ink);transition:border-color .2s,transform .2s}
 .theme-btn:hover{border-color:var(--g600);transform:rotate(12deg)}
-.hero{background:#0A2220 url(/img/bg/hero-dark.webp) center bottom/cover no-repeat}
-.phero{background:#0A2220 url(/img/bg/hero-dark.webp) 70% 80%/cover no-repeat}
-:root[data-theme="light"] .hero{background:#EAF2EE url(/img/bg/hero-light.webp) center bottom/cover no-repeat;color:#0E2B27}
-:root[data-theme="light"] .hero::before{opacity:.35}
+.hero{background:var(--m900)}
+.hero::before{display:none}
+.phero{background:var(--m900)}
+.phero::before,.phero::after{display:none}
+:root[data-theme="light"] .hero{background:linear-gradient(180deg,#FFFFFF,#F2F6F4);border-bottom:1px solid var(--line);color:#0E2B27}
 :root[data-theme="light"] .hero::after{background:none}
 :root[data-theme="light"] .hero h1,:root[data-theme="light"] .hero .h1{color:#0E2B27}
 :root[data-theme="light"] .hero .lead{color:#3D544D}
@@ -211,3 +212,5 @@ a.tile:hover{transform:translateY(-3px);border-color:var(--g600);box-shadow:0 14
 :root[data-theme="light"] .laptop{filter:drop-shadow(0 30px 40px rgba(14,43,39,.28))}
 :root[data-theme="light"] .hero .mstat .dot{box-shadow:none}
 :root[data-theme="light"] .hero .mstat span{color:#4D635C}
+:root[data-theme="light"] .hero .btn.lime{background:var(--g800);color:#fff}
+:root[data-theme="light"] .hero .btn.lime:hover{background:var(--g700)}

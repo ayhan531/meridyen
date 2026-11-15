@@ -6,7 +6,7 @@ export default function NotFound() {
   return (
     <main className="nf">
       <div>
-        <span className="logo" style={{ margin: '0 auto' }}>M</span>
+        <img className="logo" src="/img/logo-mark.svg" alt="" width={38} height={38} style={{ margin: '0 auto' }} />
         <h1>Bu sayfa haritada yok</h1>
         <p>Aradığınız sayfa taşınmış ya da hiç var olmamış olabilir.</p>
         <div style={{ display: 'flex', gap: 10, justifyContent: 'center', flexWrap: 'wrap' }}>

@@ -168,3 +168,4 @@ input{font:inherit;color:inherit}
   *,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition-duration:.01ms!important;scroll-behavior:auto!important}
   .tape .track{animation:none}
 }
+.logo{background:none!important;border-radius:0!important;object-fit:contain;display:block}

@@ -11,7 +11,7 @@ export default function SiteFooter() {
       <div className="wrap">
         <div className="ft-grid">
           <div className="ft-brand">
-            <a className="brand" href="/"><span className="logo">K</span><span><b>Kuzey Menkul Değerler</b><small>Borsa İstanbul işlem platformu</small></span></a>
+            <a className="brand" href="/"><img className="logo" src="/img/logo-mark.svg" alt="" width={38} height={38} /><span><b>Kuzey Menkul Değerler</b><small>Borsa İstanbul işlem platformu</small></span></a>
             <p>Piyasaları izleyin, emrinizi verin, portföyünüzü tek yerden takip edin. Maliyet işlemden önce, fiyat canlı kaynaktan.</p>
             <div className="ft-cta"><a className="btn lime sm" href="/kayit">Hesap aç</a><a className="btn onDark sm" href="/giris">Giriş yap</a></div>
           </div>

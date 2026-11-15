@@ -82,7 +82,7 @@ export default function SiteHeader() {
       <header className={`hd${scrolled ? ' scrolled' : ''}`} id="top">
         <a className="skip" href="#icerik">İçeriğe geç</a>
         <div className="wrap hd-in">
-          <a className="brand" href="/" aria-label="Kuzey Menkul Değerler ana sayfa"><span className="logo">K</span><span><b>Kuzey Menkul Değerler</b><small>Borsa İstanbul işlem platformu</small></span></a>
+          <a className="brand" href="/" aria-label="Kuzey Menkul Değerler ana sayfa"><img className="logo" src="/img/logo-mark.svg" alt="" width={38} height={38} /><span><b>Kuzey Menkul Değerler</b><small>Borsa İstanbul işlem platformu</small></span></a>
           <nav className={`hd-nav${open ? ' open' : ''}`} id="siteNav" aria-label="Ana menü">
             {MENUS.map((m) => (
               <div key={m.id} className={`dd${dd === m.id ? ' open' : ''}`}>

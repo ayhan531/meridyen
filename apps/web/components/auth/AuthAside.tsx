@@ -15,7 +15,7 @@ export default function AuthAside({ title, lead, name }: { title: ReactNode; lea
   return (
     <aside className="aside" aria-label="Kuzey Menkul Değerler">
       <div className="sky" aria-hidden="true"><SkyImage /></div>
-      <a className="brand" href="/"><span className="logo">K</span><span><b>Kuzey Menkul Değerler</b><small>Borsa İstanbul işlem platformu</small></span></a>
+      <a className="brand" href="/"><img className="logo" src="/img/logo-mark.svg" alt="" width={38} height={38} /><span><b>Kuzey Menkul Değerler</b><small>Borsa İstanbul işlem platformu</small></span></a>
       <div className="mid">
         <div className="greet"><span>{greet},</span> {name ? <b>{name}</b> : null}</div>
         <h1>{title}</h1>

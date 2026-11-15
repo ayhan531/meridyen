@@ -1,6 +1,6 @@
 
 /* ============================================================
-   Meridyen E-Şube — APK (minder / .NET MAUI) arayüzünün birebir
+   Kuzey Menkul E-Şube — APK (minder / .NET MAUI) arayüzünün birebir
    web karşılığı. Renkler, ölçüler ve boşluklar UI/Design.cs ile
    MainPage.*.cs dosyalarından bire bir alınmıştır.
    ============================================================ */
@@ -59,7 +59,7 @@
   --shadow-pop: 0 6px 18px rgba(0, 0, 0, 0.45);
 }
 
-/* Marka rengi sabit: Meridyen yeşili. Kullanıcı tarafından değiştirilemez. */
+/* Marka rengi sabit: Kuzey Menkul yeşili. Kullanıcı tarafından değiştirilemez. */
 [data-theme="dark"] { --purple: #58B49A; --lavender: #17332D; }
 
 /* ---------- temel ---------- */

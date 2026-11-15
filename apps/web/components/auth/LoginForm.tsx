@@ -83,7 +83,7 @@ export default function LoginForm() {
 
   return (
     <div className="auth">
-      <AuthAside title="Meridyen Yatırım'a hoş geldiniz" lead="Portföyünüz, emirleriniz ve takip listeniz kaldığınız yerde sizi bekliyor." name={greetName} />
+      <AuthAside title="Kuzey Menkul Değerler'e hoş geldiniz" lead="Portföyünüz, emirleriniz ve takip listeniz kaldığınız yerde sizi bekliyor." name={greetName} />
 
       <main className="pane">
         <div className="pane-top">

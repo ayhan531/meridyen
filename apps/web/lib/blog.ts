@@ -10,7 +10,7 @@ export const POSTS: Post[] = [
     blocks: [
       { p: ['Borsa İstanbul, halka açık şirketlerin paylarının ve diğer sermaye piyasası araçlarının düzenli, şeffaf ve denetimli bir ortamda alınıp satıldığı piyasadır. Şirketler halka arz yoluyla sermaye toplar; yatırımcılar da bu şirketlerin ortağı olma imkânı bulur.'] },
       { h: 'Fiyat nasıl oluşur?', p: ['Pay piyasasında alım ve satım emirleri elektronik bir sistemde toplanır ve fiyat-zaman önceliğine göre eşleştirilir. En yüksek fiyattan alış isteyen ile en düşük fiyattan satış isteyen karşılaştığında işlem gerçekleşir.', 'Seans boyunca ekranda gördüğünüz fiyat, o an için arz ile talebin buluştuğu son noktadır. Bu nedenle bir payın fiyatı gün içinde sürekli değişebilir.'] },
-      { h: 'Seans saatleri', p: ['Pay piyasasında sürekli işlem hafta içi 10:00–18:00 arasında yapılır. Resmî tatillerde piyasa kapalıdır. Seans dışında verilen emirlerin türü ve geçerliliği aracı kurumun sistemine göre değişir; Meridyen’de seans kapalıyken yalnızca limit emir verilebilir.'] },
+      { h: 'Seans saatleri', p: ['Pay piyasasında sürekli işlem hafta içi 10:00–18:00 arasında yapılır. Resmî tatillerde piyasa kapalıdır. Seans dışında verilen emirlerin türü ve geçerliliği aracı kurumun sistemine göre değişir; Kuzey Menkul’de seans kapalıyken yalnızca limit emir verilebilir.'] },
       { h: 'Kimler işlem yapabilir?', p: ['Borsada işlemler yetkili aracı kurumlar üzerinden yapılır. Yatırımcı, aracı kurumda hesap açar, kimlik doğrulamasını tamamlar, yatırım uygunluk anketini yanıtlar ve hesabına bakiye aktardıktan sonra emir iletir.'] },
       { h: 'Dikkat edilmesi gerekenler', ul: ['Fiyatlar yükselebileceği gibi düşebilir; sermayenizin bir kısmını ya da tamamını kaybedebilirsiniz.', 'Yalnızca kaybetmeyi göze alabileceğiniz tutarlarla işlem yapın.', 'Tek bir paya yoğunlaşmak yerine portföyünüzü çeşitlendirmeyi düşünün.'], note: 'Bu yazı genel bilgilendirme amaçlıdır; yatırım tavsiyesi değildir.' },
     ],
@@ -23,7 +23,7 @@ export const POSTS: Post[] = [
       { p: ['Bir pay almak ya da satmak için iki temel emir türü kullanılır: limit emir ve piyasa emri. İkisi arasındaki fark, fiyatı kimin belirlediğidir.'] },
       { h: 'Limit emir', p: ['Limit emirde en fazla ödemeyi (alışta) ya da en az almayı (satışta) kabul ettiğiniz fiyatı siz belirlersiniz. Emir yalnızca bu fiyatta veya daha iyi bir fiyatta gerçekleşir.', 'Fiyat belirlediğiniz seviyeye gelmezse emir bekler. Bu nedenle limit emirde fiyat kontrolü sizdedir, ancak işlemin gerçekleşeceğinin garantisi yoktur.'] },
       { h: 'Piyasa emri', p: ['Piyasa emrinde fiyat belirtmezsiniz; emir, o anda piyasada bulunan en iyi fiyattan hemen işlenir. İşlem hızı yüksektir, ancak gerçekleşen fiyat ekranda gördüğünüz fiyattan farklı olabilir.'] },
-      { h: 'Hangisini seçmeli?', ul: ['Belirli bir fiyattan işlem yapmak istiyorsanız limit emir kullanın.', 'Anında işlem önceliğinizse ve küçük fiyat farklarını kabul ediyorsanız piyasa emrini düşünün.', 'Seans kapalıyken Meridyen’de yalnızca limit emir verilebilir.'] },
+      { h: 'Hangisini seçmeli?', ul: ['Belirli bir fiyattan işlem yapmak istiyorsanız limit emir kullanın.', 'Anında işlem önceliğinizse ve küçük fiyat farklarını kabul ediyorsanız piyasa emrini düşünün.', 'Seans kapalıyken Kuzey Menkul’de yalnızca limit emir verilebilir.'] },
       { h: 'Bekleyen emirler', p: ['Gerçekleşmemiş limit emirleriniz bekleyen durumda görünür. Dilediğiniz zaman Portföy → Emirler bölümünden iptal edebilirsiniz. Alış emirlerinde, emir tutarı bekleme süresince bakiyenizde ayrılır.'], note: 'Bu yazı genel bilgilendirme amaçlıdır; yatırım tavsiyesi değildir.' },
     ],
   },
@@ -43,10 +43,10 @@ export const POSTS: Post[] = [
     title: 'Komisyon ve BSMV Nasıl Hesaplanır?',
     excerpt: 'Pay alım satımında maliyetin iki parçası olan komisyon ve BSMV’yi örnek hesapla gösteriyoruz.',
     blocks: [
-      { p: ['Her pay alım satım işleminde işlem tutarı üzerinden komisyon alınır; komisyon üzerinden de Banka ve Sigorta Muamele Vergisi (BSMV) hesaplanır. Meridyen’de pay piyasası komisyonu binde 1 (%0,1), BSMV ise komisyonun %5’idir.'] },
+      { p: ['Her pay alım satım işleminde işlem tutarı üzerinden komisyon alınır; komisyon üzerinden de Banka ve Sigorta Muamele Vergisi (BSMV) hesaplanır. Kuzey Menkul’de pay piyasası komisyonu binde 1 (%0,1), BSMV ise komisyonun %5’idir.'] },
       { h: 'Formül', ul: ['Komisyon = İşlem tutarı × 0,001', 'BSMV = Komisyon × 0,05', 'Toplam maliyet = Komisyon + BSMV'] },
       { h: 'Örnek hesap', p: ['10.000 TL tutarında bir alım için komisyon 10,00 TL, BSMV 0,50 TL, toplam maliyet 10,50 TL olur. Alışta ödemeniz gereken tutar 10.010,50 TL’dir. Satışta ise hesabınıza geçen tutar işlem tutarından bu maliyetin düşülmesiyle bulunur.'] },
-      { h: 'Emri onaylamadan önce görün', p: ['Meridyen’de emir onay ekranı; işlem tutarını, komisyonu, vergiyi ve ödenecek ya da hesaba geçecek toplamı gösterir. Böylece maliyeti işlem öncesinde bilirsiniz.'], note: 'Oranlar sözleşmenize göre değişebilir; geçerli koşullar için sözleşmelerinize bakın.' },
+      { h: 'Emri onaylamadan önce görün', p: ['Kuzey Menkul’de emir onay ekranı; işlem tutarını, komisyonu, vergiyi ve ödenecek ya da hesaba geçecek toplamı gösterir. Böylece maliyeti işlem öncesinde bilirsiniz.'], note: 'Oranlar sözleşmenize göre değişebilir; geçerli koşullar için sözleşmelerinize bakın.' },
     ],
   },
   {
@@ -68,7 +68,7 @@ export const POSTS: Post[] = [
       { p: ['Yatırım fonu, birçok yatırımcının küçük tutarlarını bir havuzda toplayıp profesyonel portföy yöneticileri aracılığıyla çeşitli varlıklara yatıran kolektif bir yatırım aracıdır. Yatırımcı, fonun portföyündeki varlıklardan pay alır.'] },
       { h: 'Fon çeşitleri', ul: ['Para piyasası ve kısa vadeli borçlanma araçları fonları', 'Borçlanma araçları fonları', 'Hisse senedi fonları', 'Değişken ve karma fonlar', 'Altın ve diğer kıymetli maden fonları'] },
       { h: 'Fon seçerken', ul: ['Fonun yatırım stratejisini ve risk düzeyini okuyun.', 'Yönetim ücretini ve diğer masrafları karşılaştırın.', 'Geçmiş getirinin gelecekteki getiriyi garanti etmediğini unutmayın.', 'Fon izahnamesini ve kurucu belgelerini inceleyin.'] },
-      { h: 'Meridyen’de fonlar', p: ['Uygulamadaki Piyasalar bölümünden fon fiyatlarını canlı izleyebilirsiniz. Fon alım satımı için müşteri temsilcinizle iletişime geçin.'], note: 'Bu yazı genel bilgilendirme amaçlıdır; yatırım tavsiyesi değildir.' },
+      { h: 'Kuzey Menkul’de fonlar', p: ['Uygulamadaki Piyasalar bölümünden fon fiyatlarını canlı izleyebilirsiniz. Fon alım satımı için müşteri temsilcinizle iletişime geçin.'], note: 'Bu yazı genel bilgilendirme amaçlıdır; yatırım tavsiyesi değildir.' },
     ],
   },
   {
@@ -121,7 +121,7 @@ export const POSTS: Post[] = [
     blocks: [
       { p: ['Pay piyasasında fiyatlar belirli adımlarla hareket eder ve gün içinde bir önceki kapanışa göre belirli bir bandın dışına çıkamaz.'] },
       { h: 'Fiyat adımı', p: ['Fiyat adımı, bir payın fiyatının değişebileceği en küçük tutardır. Pay fiyatı yükseldikçe fiyat adımı da büyür. Limit emirde girdiğiniz fiyatın geçerli bir fiyat adımına uyması gerekir.'] },
-      { h: 'Tavan ve taban', p: ['Günlük fiyat değişim sınırı genellikle bir önceki kapanışın ±%10’udur. Üst sınıra “tavan”, alt sınıra “taban” denir. Meridyen’in Al · Sat ekranı, seçili payın tavan ve taban fiyatını gösterir.'], note: 'Fiyat sınırları ve fiyat adımları borsa düzenlemelerine göre değişebilir.' },
+      { h: 'Tavan ve taban', p: ['Günlük fiyat değişim sınırı genellikle bir önceki kapanışın ±%10’udur. Üst sınıra “tavan”, alt sınıra “taban” denir. Kuzey Menkul’in Al · Sat ekranı, seçili payın tavan ve taban fiyatını gösterir.'], note: 'Fiyat sınırları ve fiyat adımları borsa düzenlemelerine göre değişebilir.' },
     ],
   },
 ];

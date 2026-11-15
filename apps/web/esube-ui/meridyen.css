@@ -1,4 +1,4 @@
-/* Meridyen markası: Ottoman e-şube arayüzünün üstüne yeşil kurumsal ton ve Manrope yazı tipi. */
+/* Kuzey Menkul markası: Ottoman e-şube arayüzünün üstüne yeşil kurumsal ton ve Manrope yazı tipi. */
 html, body { margin: 0; min-height: 100%; background: var(--canvas, #fff); color: var(--ink, #101321); font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
 html[data-theme="dark"] body { background: #171922; }
 .esube, .overlay, .esube button, .esube input, .overlay button, .overlay input, .esube textarea, .esube select { font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif; }

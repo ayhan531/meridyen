@@ -11,7 +11,7 @@ export default function SiteFooter() {
       <div className="wrap">
         <div className="ft-grid">
           <div className="ft-brand">
-            <a className="brand" href="/"><span className="logo">M</span><span><b>Meridyen Yatırım</b><small>Borsa İstanbul işlem platformu</small></span></a>
+            <a className="brand" href="/"><span className="logo">K</span><span><b>Kuzey Menkul Değerler</b><small>Borsa İstanbul işlem platformu</small></span></a>
             <p>Piyasaları izleyin, emrinizi verin, portföyünüzü tek yerden takip edin. Maliyet işlemden önce, fiyat canlı kaynaktan.</p>
             <div className="ft-cta"><a className="btn lime sm" href="/kayit">Hesap aç</a><a className="btn onDark sm" href="/giris">Giriş yap</a></div>
           </div>
@@ -22,10 +22,10 @@ export default function SiteFooter() {
             </nav>
           ))}
         </div>
-        <div className="ft-warn"><b>Güvenlik uyarısı</b><p>Meridyen çalışanları şifrenizi istemez, garantili kazanç vaat etmez ve kişisel hesaba para göndermenizi istemez. Para yatırma yalnızca e-şubede görünen sistem hesabına yapılır.</p></div>
+        <div className="ft-warn"><b>Güvenlik uyarısı</b><p>Kuzey Menkul çalışanları şifrenizi istemez, garantili kazanç vaat etmez ve kişisel hesaba para göndermenizi istemez. Para yatırma yalnızca e-şubede görünen sistem hesabına yapılır.</p></div>
         <div className="ft-risk">
           <p>Burada yer alan bilgiler yatırım danışmanlığı kapsamında değildir. Sermaye piyasası araçlarında işlem yapmak, yatırdığınız tutarın bir kısmını ya da tamamını kaybetme riski taşır; geçmiş performans gelecekteki sonuçların göstergesi değildir. Yatırım kararınızı vermeden önce risk bildirimini okuyun.</p>
-          <div className="row"><span>© {new Date().getFullYear()} Meridyen Yatırım. Tüm hakları saklıdır.</span><span>Fiyatlar canlı veri kaynağından alınır; gecikme veya kesinti olabilir.</span></div>
+          <div className="row"><span>© {new Date().getFullYear()} Kuzey Menkul Değerler. Tüm hakları saklıdır.</span><span>Fiyatlar canlı veri kaynağından alınır; gecikme veya kesinti olabilir.</span></div>
         </div>
       </div>
     </footer>

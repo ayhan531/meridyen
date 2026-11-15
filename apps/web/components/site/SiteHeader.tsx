@@ -45,7 +45,7 @@ const MENUS: Menu[] = [
       ['/blog', 'Yatırımcı rehberi', 'Borsa, emir, takas, risk'],
       ['/blog/borsa-istanbul-nedir-nasil-calisir', 'Borsa nasıl çalışır?', 'Başlangıç için']] }] },
   { id: 'c', label: 'Kurumsal', cols: [
-    { h: 'Meridyen', items: [
+    { h: 'Kurumsal', items: [
       ['/kurumsal', 'Hakkımızda', 'Yaklaşımımız ve ilkelerimiz'],
       ['/guvenlik', 'Güvenlik ve şeffaflık', 'İşleyişimiz'],
       ['/site-haritasi', 'Site haritası', 'Tüm sayfalar']] },
@@ -82,7 +82,7 @@ export default function SiteHeader() {
       <header className={`hd${scrolled ? ' scrolled' : ''}`} id="top">
         <a className="skip" href="#icerik">İçeriğe geç</a>
         <div className="wrap hd-in">
-          <a className="brand" href="/" aria-label="Meridyen Yatırım ana sayfa"><span className="logo">M</span><span><b>Meridyen Yatırım</b><small>Borsa İstanbul işlem platformu</small></span></a>
+          <a className="brand" href="/" aria-label="Kuzey Menkul Değerler ana sayfa"><span className="logo">K</span><span><b>Kuzey Menkul Değerler</b><small>Borsa İstanbul işlem platformu</small></span></a>
           <nav className={`hd-nav${open ? ' open' : ''}`} id="siteNav" aria-label="Ana menü">
             {MENUS.map((m) => (
               <div key={m.id} className={`dd${dd === m.id ? ' open' : ''}`}>

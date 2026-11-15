@@ -21,14 +21,14 @@ const Check = ({ n }: { n?: boolean }) => <Ico n={n ? 'x' : 'check'} />;
 export const PAGES: Record<string, PageDef> = {
   kurumsal: {
     title: 'Hakkımızda',
-    lead: 'Meridyen, bir yerin konumunu belirleyen referans çizgisidir. Biz de yatırımcının piyasada yönünü bulabilmesi için net bir referans sunmayı hedefliyoruz.',
+    lead: 'Kuzey, pusulanın hep işaret ettiği yöndür. Biz de yatırımcının piyasada yönünü kaybetmemesi için net, sade ve şeffaf bir referans olmayı hedefliyoruz.',
     cta: true,
     body: (<>
       <section className="pg"><div className="wrap split2">
         <div className="sticky"><h2 style={{ fontSize: 'var(--fs-h2)' }}>Neden bu platformu kurduk</h2></div>
         <div className="prose">
           <p>Pay piyasasına girmek isteyen biri çoğu zaman aynı engellerle karşılaşır: dağınık ekranlar, ancak işlemden sonra belli olan maliyetler, ne durumda olduğu anlaşılmayan talepler.</p>
-          <p>Meridyen Yatırım bunların karşılığında üç şey vaat eder: fiyat ve maliyet işlemden önce görünür, hesabınızın ve taleplerinizin durumu her an izlenebilir, ürünün yapabildikleri ile yapamadıkları açıkça yazılır.</p>
+          <p>Kuzey Menkul Değerler bunların karşılığında üç şey vaat eder: fiyat ve maliyet işlemden önce görünür, hesabınızın ve taleplerinizin durumu her an izlenebilir, ürünün yapabildikleri ile yapamadıkları açıkça yazılır.</p>
           <p>Telefon, tablet veya bilgisayar fark etmez; aynı hesaba aynı sade arayüzle ulaşırsınız.</p>
         </div>
       </div></section>
@@ -195,10 +195,10 @@ export const PAGES: Record<string, PageDef> = {
         ].map(([i, t, d]) => (<div key={t} className="tile"><Ico n={i} /><h3>{t}</h3><p>{d}</p></div>))}
       </div></section>
       <section className="pg"><div className="wrap prose">
-        <div className="callout" style={{ marginTop: 0, marginBottom: 32 }}><b>Dolandırıcılık uyarısı.</b> Meridyen çalışanları sosyal medya, mesajlaşma uygulaması veya telefonla şifrenizi istemez; “garantili kazanç” vaat etmez; kişisel bir hesaba para göndermenizi istemez. Para yatırma yalnızca e-şubede görünen sistem hesabına yapılır. Şüpheli bir durumda işlemi durdurun ve <a href="/iletisim">bize yazın</a>.</div>
+        <div className="callout" style={{ marginTop: 0, marginBottom: 32 }}><b>Dolandırıcılık uyarısı.</b> Kuzey Menkul çalışanları sosyal medya, mesajlaşma uygulaması veya telefonla şifrenizi istemez; “garantili kazanç” vaat etmez; kişisel bir hesaba para göndermenizi istemez. Para yatırma yalnızca e-şubede görünen sistem hesabına yapılır. Şüpheli bir durumda işlemi durdurun ve <a href="/iletisim">bize yazın</a>.</div>
         <h2>Sizden beklediklerimiz</h2>
         <ul>
-          <li>Şifrenizi kimseyle paylaşmayın; Meridyen çalışanları şifrenizi asla istemez.</li>
+          <li>Şifrenizi kimseyle paylaşmayın; Kuzey Menkul çalışanları şifrenizi asla istemez.</li>
           <li>Güçlü ve başka yerde kullanmadığınız bir şifre seçin.</li>
           <li>Ortak kullanılan cihazlarda işiniz bitince çıkış yapın.</li>
           <li>Adresin <b>meridyen-1.onrender.com</b> veya resmî alan adımız olduğundan emin olun; şüpheli bağlantılara tıklamayın.</li>
@@ -215,7 +215,7 @@ export const PAGES: Record<string, PageDef> = {
     crumb: [['/sozlesmeler', 'Sözleşmeler']],
     body: (<div className="wrap pg"><div className="prose">
       <h2>Veri sorumlusu</h2>
-      <p>Kişisel verileriniz, Meridyen Yatırım tarafından veri sorumlusu sıfatıyla aşağıda açıklanan kapsamda işlenir.</p>
+      <p>Kişisel verileriniz, Kuzey Menkul Değerler tarafından veri sorumlusu sıfatıyla aşağıda açıklanan kapsamda işlenir.</p>
       <h2>İşlenen veriler</h2>
       <ul>
         <li>Kimlik: ad soyad, T.C. kimlik numarası, doğum bilgileri, kimlik belgesi görüntüleri</li>
@@ -268,7 +268,7 @@ export const PAGES: Record<string, PageDef> = {
     title: 'Piyasa haberleri',
     lead: 'Güncel ekonomi ve piyasa haberleri. Kaynak sayfaları yeni sekmede açılır.',
     cta: true,
-    body: (<div className="wrap pg"><NewsList limit={40} full /><p className="mute" style={{ marginTop: 18, fontSize: 13.5 }}>Haberler üçüncü taraf kaynaklardan derlenir; Meridyen içeriklerin doğruluğundan sorumlu değildir ve haberler yatırım tavsiyesi değildir.</p></div>),
+    body: (<div className="wrap pg"><NewsList limit={40} full /><p className="mute" style={{ marginTop: 18, fontSize: 13.5 }}>Haberler üçüncü taraf kaynaklardan derlenir; Kuzey Menkul içeriklerin doğruluğundan sorumlu değildir ve haberler yatırım tavsiyesi değildir.</p></div>),
   },
 
   destek: {
@@ -333,7 +333,7 @@ export const PAGES: Record<string, PageDef> = {
 
   'site-haritasi': {
     title: 'Site haritası',
-    lead: 'Meridyen Yatırım’daki tüm sayfalar.',
+    lead: 'Kuzey Menkul Değerler’deki tüm sayfalar.',
     body: (<div className="wrap pg cols c3">
       {[
         ['Ürünler', [['/hizmetler', 'Ürünler ve hizmetler'], ['/ucretler', 'Komisyon ve ücretler'], ['/piyasalar', 'Canlı piyasalar'], ['/haberler', 'Piyasa haberleri'], ['/araclar', 'Yatırım araçları']]],

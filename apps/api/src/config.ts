@@ -18,7 +18,7 @@ export const config = {
   /** Tarayıcı çerezleri yalnızca HTTPS'te gönderilsin (Render'da her zaman HTTPS). */
   cookieSecure: env.COOKIE_SECURE ? env.COOKIE_SECURE === 'true' : env.NODE_ENV === 'production',
   /** Hazır hesap (müşteri no 48273621) açılışta oluşturulsun mu. */
-  seedDemo: env.SEED_DEMO !== 'false',
+  seedDemo: env.SEED_DEMO === 'true',
   /**
    * SMS sağlayıcısı bağlanana kadar iki adımlı doğrulama kodu yanıtta döner ve ekranda gösterilir.
    * "log" yapılırsa kod yalnızca sunucu günlüğüne yazılır.

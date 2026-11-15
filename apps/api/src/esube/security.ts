@@ -117,7 +117,7 @@ export async function sendResetEmail(email: string, resetUrl: string): Promise<b
   await transport.sendMail({
     from: process.env.SMTP_FROM || user,
     to: email,
-    subject: 'Meridyen Yatırım şifre yenileme',
+    subject: 'Kuzey Menkul Değerler şifre yenileme',
     text: `Şifrenizi 30 dakika içinde yenilemek için bağlantıyı açın:\n\n${resetUrl}\n`,
   });
   return true;

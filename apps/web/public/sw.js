@@ -3,7 +3,7 @@ self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', (e) => e.waitUntil(self.clients.claim()));
 self.addEventListener('push', (event) => {
   event.waitUntil((async () => {
-    let title = 'Meridyen Yatırım', body = 'Yeni bir bildiriminiz var.';
+    let title = 'Kuzey Menkul Değerler', body = 'Yeni bir bildiriminiz var.';
     try {
       const r = await fetch('/api/notifications', { credentials: 'same-origin', cache: 'no-store' });
       if (r.ok) { const j = await r.json(); const n = (j.notifications || []).find((x) => !x.read_at) || (j.notifications || [])[0]; if (n) { title = n.title || title; body = n.body || body; } }

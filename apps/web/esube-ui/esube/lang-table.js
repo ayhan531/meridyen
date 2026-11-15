@@ -2369,11 +2369,11 @@ export const LANG = {
    "iPhone / iPad",
    "iPhone / iPad"
   ],
-  "Meridyen E-Şube'yi telefonunun ana ekranına ekleyerek uygulama gibi kullanabilirsin.": [
-   "Add Meridyen E-Şube to your home screen to use it like an app.",
-   "Meridyen E-Şube-ni telefonunuzun ana ekranına əlavə edib tətbiq kimi istifadə edə bilərsiniz.",
-   "Füge Meridyen E-Şube zum Startbildschirm hinzu und nutze es wie eine App.",
-   "Ajoutez Meridyen E-Şube à votre écran d’accueil pour l’utiliser comme une application."
+  "Kuzey Menkul E-Şube'yi telefonunun ana ekranına ekleyerek uygulama gibi kullanabilirsin.": [
+   "Add Kuzey Menkul E-Şube to your home screen to use it like an app.",
+   "Kuzey Menkul E-Şube-ni telefonunuzun ana ekranına əlavə edib tətbiq kimi istifadə edə bilərsiniz.",
+   "Füge Kuzey Menkul E-Şube zum Startbildschirm hinzu und nutze es wie eine App.",
+   "Ajoutez Kuzey Menkul E-Şube à votre écran d’accueil pour l’utiliser comme une application."
   ],
   "Bu ürün grubunda işlem e-şube üzerinden yapılmıyor. Referansınız ile iletişime geçiniz.": [
    "Orders for this product group are not placed through e-banking. Please contact your referrer.",

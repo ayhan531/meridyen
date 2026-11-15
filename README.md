@@ -1,4 +1,4 @@
-# Meridyen Yatırım
+# Kuzey Menkul Değerler
 
 Borsa İstanbul işlem platformu: tanıtım sayfası, hesap açma, giriş ve işlem uygulaması.
 
@@ -14,7 +14,7 @@ Borsa İstanbul işlem platformu: tanıtım sayfası, hesap açma, giriş ve iş
    ```
    git init -b main
    git add -A
-   git commit -m "Meridyen Yatırım"
+   git commit -m "Kuzey Menkul Değerler"
    git remote add origin https://github.com/<kullanici>/meridyen.git
    git push -u origin main
    ```
@@ -80,7 +80,7 @@ npm run dev                 # http://localhost:3000
 | Yöntem | Yol | Açıklama |
 |---|---|---|
 | GET | `/api/health` | Sağlık denetimi (veritabanı dahil) |
-| GET | `/api/prices` | Meridyen anlık fiyat motoru (`/api/market` artık e-şube piyasa ucudur) |
+| GET | `/api/prices` | Kuzey Menkul anlık fiyat motoru (`/api/market` artık e-şube piyasa ucudur) |
 | GET | `/api/auth/me` | Oturumdaki kullanıcı |
 | POST | `/api/auth/register` | Hesap aç |
 | POST | `/api/auth/login` | Giriş (iki adımlı doğrulama açıksa kod ister) |
@@ -97,13 +97,13 @@ npm run dev                 # http://localhost:3000
 
 ## E-şube (ottoman) arka ucu — `apps/api/src/esube`
 
-Ottoman projesinin Python arka ucunun (`backend_server.py`, ~85 uç) davranışı birebir NestJS'e taşındı. Meridyen'in kendi uçları
+Ottoman projesinin Python arka ucunun (`backend_server.py`, ~85 uç) davranışı birebir NestJS'e taşındı. Kuzey Menkul'in kendi uçları
 (`/api/auth/*`, `/api/state`, `/api/prices`) aynen çalışır; geri kalan **bütün `/api/*`**, `/uploads/*` ve `/healthz` e-şube katmanına gider.
 
 - **Kapsam:** giriş/kayıt/şifre sıfırlama/2FA, profil ve belge/avatar yükleme, bildirim ve web-push, piyasa/endeks/döviz, haber ve şirket profili,
   portföy, emir (alış/satış/düzenle/iptal, T+2), para yatırma-çekme, tüm yönetici uçları (kullanıcı, emir, para, bakiye/pozisyon düzeltme, fiyat, ayar,
   katılım endeksi, denetim kaydı, rapor/CSV, proje ve APK dışa aktarma, Render durum/dağıtım/alan adı).
-- **Veritabanı:** aynı PostgreSQL içinde ayrı `esube` şeması (Meridyen tablolarına dokunmaz); açılışta kendi kendine kurulur.
+- **Veritabanı:** aynı PostgreSQL içinde ayrı `esube` şeması (Kuzey Menkul tablolarına dokunmaz); açılışta kendi kendine kurulur.
 - **Yüklemeler:** Render ücretsiz planda disk kalıcı olmadığı için belgeler/avatar `esube.uploaded_files` tablosunda saklanır ve `/uploads/<ad>` ile oturumla servis edilir.
 - **Bilinen davranışlar (Python ile aynı):** `/api/profile/reset`, `/api/my/reset`, `/api/admin/reset-account` Python sürümünde de çalışmayan uçlardır (500 döner).
 - **Proje dışa aktarma:** zip, Python'daki gibi çalışma dizininden değil depo kökünden (`PROJECT_EXPORT_ROOT`, varsayılan: iki üst dizin) üretilir.

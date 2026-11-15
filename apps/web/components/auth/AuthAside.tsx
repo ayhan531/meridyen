@@ -13,9 +13,9 @@ export default function AuthAside({ title, lead, name }: { title: ReactNode; lea
   useMarketTick();
   const q = ['BIST 100', 'Gram Altın', 'USD/TRY'].map((n) => INDICES.find((i) => i.n === n)).filter(Boolean);
   return (
-    <aside className="aside" aria-label="Meridyen Yatırım">
+    <aside className="aside" aria-label="Kuzey Menkul Değerler">
       <div className="sky" aria-hidden="true"><SkyImage /></div>
-      <a className="brand" href="/"><span className="logo">M</span><span><b>Meridyen Yatırım</b><small>Borsa İstanbul işlem platformu</small></span></a>
+      <a className="brand" href="/"><span className="logo">K</span><span><b>Kuzey Menkul Değerler</b><small>Borsa İstanbul işlem platformu</small></span></a>
       <div className="mid">
         <div className="greet"><span>{greet},</span> {name ? <b>{name}</b> : null}</div>
         <h1>{title}</h1>

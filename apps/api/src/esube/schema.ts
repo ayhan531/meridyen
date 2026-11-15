@@ -409,7 +409,7 @@ export async function createSchema(): Promise<void> {
 /** migrate_db içindeki yinelenebilir düzeltmeler. */
 export async function normalizeData(conn: Conn): Promise<void> {
   await conn.run("UPDATE t2_settlements SET remaining_amount=amount WHERE status='pending' AND remaining_amount<=0");
-  /* Eski kurulumlardan kalan 'OT' müşteri numarası önekini Meridyen önekine çevirir. */
+  /* Eski kurulumlardan kalan 'OT' müşteri numarası önekini Kuzey Menkul önekine çevirir. */
   await conn.run("UPDATE users SET account_no='MY'||SUBSTR(account_no,3) WHERE account_no LIKE 'OT%' AND NOT EXISTS (SELECT 1 FROM users u2 WHERE u2.account_no='MY'||SUBSTR(users.account_no,3))").catch(() => {});
   for (const row of await conn.all("SELECT id FROM users WHERE account_no IS NULL OR account_no=''")) {
     await conn.run('UPDATE users SET account_no=? WHERE id=?', [await generateAccountNo(conn), row.id]);
@@ -428,10 +428,10 @@ export async function seedSystemBankAccounts(conn: Conn): Promise<void> {
   await conn.run("UPDATE system_bank_accounts SET is_active=0 WHERE iban='TR330006100519786457841326'");
 }
 
-/** Eski kurulumlardan kalan Ottoman marka ayarlarını Meridyen'e çevirir (yönetici sonradan değiştirdiyse dokunmaz). */
+/** Eski kurulumlardan kalan Ottoman marka ayarlarını Kuzey Menkul'e çevirir (yönetici sonradan değiştirdiyse dokunmaz). */
 export async function migrateBrand(conn: Conn): Promise<void> {
   const map: [string, string, string][] = [
-    ['brand_name', 'Ottoman', 'Meridyen'], ['brand_descriptor', 'E-Şube', 'Yatırım'], ['brand_symbol', 'O', 'M'],
+    ['brand_name', 'Ottoman', 'Kuzey'], ['brand_name', 'Meridyen', 'Kuzey'], ['brand_name', 'Kuzey Menkul', 'Kuzey'], ['brand_descriptor', 'E-Şube', 'Menkul Değerler'], ['brand_descriptor', 'Yatırım', 'Menkul Değerler'], ['brand_symbol', 'O', 'K'], ['brand_symbol', 'M', 'K'],
     ['brand_tagline', 'Yatırımın zarif hali', "Borsa İstanbul'a sade ve şeffaf bir hat"],
     ['ui_primary_color', '#7657ff', '#1E4B41'], ['ui_accent_color', '#139477', '#28604F'], ['ui_font_family', 'Inter', 'Manrope'],
     ['official_email', 'destek@ottoman.local', ''], ['content_support_email', 'destek@ottoman.local', ''],
@@ -456,9 +456,9 @@ export async function seedSystemSettings(conn: Conn): Promise<void> {
     official_phone: env.OFFICIAL_PHONE ?? '',
     official_email: env.OFFICIAL_EMAIL ?? '',
     official_license_text: env.OFFICIAL_LICENSE_TEXT ?? '',
-    brand_name: 'Meridyen',
-    brand_descriptor: 'Yatırım',
-    brand_symbol: 'M',
+    brand_name: 'Kuzey',
+    brand_descriptor: 'Menkul Değerler',
+    brand_symbol: 'K',
     brand_tagline: "Borsa İstanbul'a sade ve şeffaf bir hat",
     ui_primary_color: '#1E4B41',
     ui_accent_color: '#28604F',
@@ -499,7 +499,7 @@ export async function seedAdmin(conn: Conn): Promise<void> {
   if (!/^\d{11}$/.test(adminTc)) adminTc = '11111111110';
   const password = process.env.ADMIN_PASSWORD || 'Admin12345';
   const [salt, digest] = await hashPassword(password);
-  const name = (process.env.ADMIN_NAME || 'Meridyen Yönetici').slice(0, 120);
+  const name = (process.env.ADMIN_NAME || 'Kuzey Menkul Yönetici').slice(0, 120);
   const email = (process.env.ADMIN_EMAIL || 'admin@meridyen.local').slice(0, 120);
   const existing = await conn.get('SELECT id FROM users WHERE tc=?', [adminTc]);
   if (existing) {
@@ -530,7 +530,7 @@ export async function seedTestUser(conn: Conn): Promise<void> {
   if (!/^\d{11}$/.test(testTc)) testTc = '22222222220';
   const existing = await conn.get('SELECT id FROM users WHERE tc=?', [testTc]);
   const password = env.TEST_USER_PASSWORD || 'User12345';
-  const fullName = (env.TEST_USER_NAME ?? 'Meridyen Test Kullanıcı').slice(0, 120);
+  const fullName = (env.TEST_USER_NAME ?? 'Kuzey Menkul Test Kullanıcı').slice(0, 120);
   const email = (env.TEST_USER_EMAIL ?? 'test@meridyen.local').slice(0, 120);
   const phone = (env.TEST_USER_PHONE ?? '05550000000').slice(0, 40);
   const city = (env.TEST_USER_CITY ?? 'Istanbul').slice(0, 80);

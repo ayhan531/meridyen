@@ -3,7 +3,7 @@ import type { ReactNode } from 'react';
 import '@/styles/fonts.css';
 
 export const metadata: Metadata = {
-  title: 'Meridyen Yatırım',
+  title: 'Kuzey Menkul Değerler',
   icons: { icon: '/img/favicon.svg' },
 };
 

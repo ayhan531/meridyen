@@ -180,7 +180,7 @@ export default function Account({
           <Row
             title={T("Uygulama hakkında")}
             subtitle={`${T("Sürüm")} ${version} · ${T("Sürümünüz güncel.")}`}
-            onClick={() => onNotice("Meridyen Yatırım", `${T("Sürüm")} ${version} · ${T("Sürümünüz güncel.")}`)}
+            onClick={() => onNotice("Kuzey Menkul Değerler", `${T("Sürüm")} ${version} · ${T("Sürümünüz güncel.")}`)}
           />
         </Divided>
       </div>

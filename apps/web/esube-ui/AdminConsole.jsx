@@ -2699,7 +2699,7 @@ export default function AdminConsole({ data, refresh, logout, onClose }) {
       <header>
         <div className="ac-drawer-brand">
           <img className="brand-logo-icon" src="/img/favicon.svg" alt="" />
-          <span className="brand">Meridyen Yatırım</span>
+          <span className="brand">Kuzey Menkul Değerler</span>
           <div><strong>Admin Panel</strong><small>Yönetim</small></div>
         </div>
         <button className="ac-drawer-close" onClick={() => setMenuAcik(false)} aria-label="Kapat">✕</button>

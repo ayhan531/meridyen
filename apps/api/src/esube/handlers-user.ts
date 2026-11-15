@@ -154,7 +154,7 @@ export async function apiSetupTwoFactor(ctx: Ctx): Promise<Reply> {
     const secret = b32encode(randomBytes(20));
     await conn.run('UPDATE users SET two_factor_secret=?, two_factor_enabled=0 WHERE id=?', [secret, user.id]);
     await conn.commit();
-    const issuer = quotePlus('Meridyen Yatırım');
+    const issuer = quotePlus('Kuzey Menkul Değerler');
     const account = quotePlus(user.email);
     return ok(ctx, { secret, otpauth_url: `otpauth://totp/${issuer}:${account}?secret=${secret}&issuer=${issuer}&digits=6&period=30` });
   });
@@ -272,7 +272,7 @@ export async function apiNotifications(ctx: Ctx): Promise<Reply> {
 }
 
 const NOTIFICATION_EVENTS: Record<string, [string, string, string]> = {
-  installed: ['Uygulama eklendi', 'Meridyen e-şube ana ekranınıza eklendi; bildirimleri buradan takip edebilirsiniz.', 'genel'],
+  installed: ['Uygulama eklendi', 'Kuzey Menkul e-şube ana ekranınıza eklendi; bildirimleri buradan takip edebilirsiniz.', 'genel'],
 };
 
 export async function apiNotificationEvent(ctx: Ctx): Promise<Reply> {
@@ -340,7 +340,7 @@ export async function apiPushTest(ctx: Ctx): Promise<Reply> {
     const user = await ctx.requireUser(conn);
     const cihaz = Number((await conn.get('SELECT COUNT(*) AS n FROM push_subscriptions WHERE user_id=?', [user.id]))!.n);
     if (!cihaz) throw new HttpError(400, 'Bu hesapta kayıtlı cihaz yok');
-    await createNotification(conn, user.id, 'Bildirimler açık', 'Meridyen e-şube bildirimleri bu cihazda çalışıyor.', 'genel');
+    await createNotification(conn, user.id, 'Bildirimler açık', 'Kuzey Menkul e-şube bildirimleri bu cihazda çalışıyor.', 'genel');
     await conn.commit();
     return ok(ctx, { ok: true, cihaz });
   });
@@ -471,11 +471,11 @@ export async function apiPublicConfig(ctx: Ctx): Promise<Reply> {
     return ok(ctx, {
       company,
       branding: {
-        name: s.brand_name ?? 'Meridyen',
-        descriptor: s.brand_descriptor ?? 'ÖZEL PORTFÖY & YATIRIM',
-        symbol: s.brand_symbol ?? 'A',
+        name: s.brand_name ?? 'Kuzey',
+        descriptor: s.brand_descriptor ?? 'Menkul Değerler',
+        symbol: s.brand_symbol ?? 'K',
         logo_url: s.brand_logo_url ?? '/favicon.svg',
-        tagline: s.brand_tagline ?? 'Prestijli Varlık ve Fon Yönetimi',
+        tagline: s.brand_tagline ?? 'Menkul Değerler ve Yatırım Hizmetleri',
         primary: s.ui_primary_color ?? '#007b53',
         accent: s.ui_accent_color ?? '#00a875',
         danger: s.ui_danger_color ?? '#ef4444',

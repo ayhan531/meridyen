@@ -358,7 +358,7 @@ export default function App({ me, onLogout, onAdmin, onExit, refreshMe }) {
       <button className="ava" onClick={() => setOverlay({ kind: "profile" })} aria-label={T("Profil")}>
         {me?.avatar_url ? <img src={me.avatar_url} alt="" /> : monogram}
       </button>
-      <div className="brand-word">Meridyen<span className="brand-sub">&nbsp;Yatırım</span></div>
+      <div className="brand-word">Kuzey<span className="brand-sub">&nbsp;Menkul Değerler</span></div>
       <div className="brandbar-actions">
         {me?.role === "admin" && (
           <button className="icon-btn lav" onClick={onAdmin} title="Admin"><Icon name="shield" size={20} /></button>
@@ -586,7 +586,7 @@ export default function App({ me, onLogout, onAdmin, onExit, refreshMe }) {
         </div>
       )}
       <nav className="sidebar">
-        <div className="brandmark"><img className="brand-logo-icon" src="/img/favicon.svg" alt="" /><span>Meridyen Yatırım</span></div>
+        <div className="brandmark"><img className="brand-logo-icon" src="/img/favicon.svg" alt="" /><span>Kuzey Menkul Değerler</span></div>
         {NAV.map((item, index) => (
           <button key={item.title} className={index === 2 ? "trade-cta" : navActive(index) ? "active" : ""} onClick={() => navigate(index)}>
             <Icon name={item.icon} size={20} />
@@ -1051,7 +1051,7 @@ function PushPrompt({ onClose, onNotice }) {
     writePref("push-asked", true);
     onClose();
     if (durum === "acik") onNotice("Bildirimler açık", "İşlem, referans ve piyasa bildirimleri artık bu cihaza düşecek.");
-    else if (durum === "engellendi") onNotice("İzin verilmedi", "Ayarlar → Bildirimler bölümünden Meridyen için bildirimlere izin verebilirsiniz.");
+    else if (durum === "engellendi") onNotice("İzin verilmedi", "Ayarlar → Bildirimler bölümünden Kuzey Menkul için bildirimlere izin verebilirsiniz.");
     else if (durum === "hata") onNotice("Kurulamadı", "Bildirim aboneliği kurulamadı, birazdan tekrar deneyin.");
   };
   return (
@@ -1092,7 +1092,7 @@ export function InstallSheet({ onClose, onNotice }) {
     setKurulabilir(canInstall());
     if (sonuc === "accepted") {
       onClose();
-      onNotice("Uygulama eklendi", "Meridyen artık ana ekranınızda. Kısayoldan açtığınızda doğrudan e-şubeye girersiniz.");
+      onNotice("Uygulama eklendi", "Kuzey Menkul artık ana ekranınızda. Kısayoldan açtığınızda doğrudan e-şubeye girersiniz.");
       return;
     }
     // Tarayıcı kurulum teklifini vermediyse düğme sessiz kalmasın; nedenini söyle.
@@ -1112,16 +1112,16 @@ export function InstallSheet({ onClose, onNotice }) {
   const elmaAdimlari = [
     ["share", "Paylaş düğmesine dokunun", altCubuk ? "Ekranın altındaki ortadaki simge" : "Adres çubuğunun sağındaki simge"],
     ["addhome", "“Ana Ekrana Ekle”yi seçin", "Listeyi biraz yukarı kaydırın"],
-    ["check", "Sağ üstten “Ekle”ye dokunun", "Meridyen simgesi ana ekrana gelir"],
+    ["check", "Sağ üstten “Ekle”ye dokunun", "Kuzey Menkul simgesi ana ekrana gelir"],
   ];
 
   return (
     <Sheet title={T("Uygulamayı yükle")} onClose={onClose}>
       <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <div className="install-hero">
-          <img src="/img/favicon.svg" alt="Meridyen Yatırım" width={64} height={64} />
+          <img src="/img/favicon.svg" alt="Kuzey Menkul Değerler" width={64} height={64} />
           <div className="install-copy">
-            <strong>Meridyen Yatırım</strong>
+            <strong>Kuzey Menkul Değerler</strong>
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-# Meridyen Yatırım — Render TEK Web Service (API + web aynı serviste) + kalıcı disk.
+# Kuzey Menkul Değerler — Render TEK Web Service (API + web aynı serviste) + kalıcı disk.
 # Not: kalıcı disk ücretli plan (Starter ve üstü) ister; ayrıca bir Render PostgreSQL oluşturup DATABASE_URL olarak bağlayın.
 databases:
   - name: meridyen-db
@@ -38,7 +38,7 @@ services:
       - key: COOKIE_SECURE
         value: "true"
       - key: SEED_DEMO
-        value: "true"
+        value: "false"
       - key: SMS_MODE
         value: screen
       - key: ADMIN_TC

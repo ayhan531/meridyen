@@ -18,10 +18,10 @@ import { POSTS } from '@/lib/blog';
 import { FAQ } from '@/lib/site-content';
 
 export const metadata: Metadata = {
-  title: "Meridyen Yatırım — Borsa İstanbul'a sade ve şeffaf bir hat",
+  title: "Kuzey Menkul Değerler — Borsa İstanbul'a sade ve şeffaf bir hat",
   description: 'Borsa İstanbul paylarını izleyin, emir verin, portföyünüzü takip edin. Komisyon ve BSMV emri onaylamadan önce görünür; fiyatlar canlı kaynaktan gelir.',
   alternates: { canonical: '/' },
-  openGraph: { title: 'Meridyen Yatırım', description: "Borsa İstanbul'a sade ve şeffaf bir hat.", type: 'website', locale: 'tr_TR' },
+  openGraph: { title: 'Kuzey Menkul Değerler', description: "Borsa İstanbul'a sade ve şeffaf bir hat.", type: 'website', locale: 'tr_TR' },
 };
 
 const PRODUCTS: [string, string, string, string, boolean][] = [
@@ -206,7 +206,7 @@ export default function LandingPage() {
         <section className="warn-band" aria-label="Güvenlik uyarısı">
           <div className="wrap warn-in">
             <Ico n="shield" size={34} />
-            <div><b>Dolandırıcılığa karşı dikkatli olun</b><p>Meridyen çalışanları sosyal medya, mesajlaşma uygulaması veya telefonla şifrenizi istemez, garantili kazanç vaat etmez ve kişisel bir hesaba para göndermenizi istemez. Para yatırma yalnızca e-şubede görünen sistem hesabına yapılır.</p></div>
+            <div><b>Dolandırıcılığa karşı dikkatli olun</b><p>Kuzey Menkul çalışanları sosyal medya, mesajlaşma uygulaması veya telefonla şifrenizi istemez, garantili kazanç vaat etmez ve kişisel bir hesaba para göndermenizi istemez. Para yatırma yalnızca e-şubede görünen sistem hesabına yapılır.</p></div>
             <a className="btn ghost sm" href="/guvenlik">Güvenlik rehberi</a>
           </div>
         </section>

@@ -5,7 +5,7 @@ import PageHero from '@/components/site/PageHero';
 import { POSTS, fmtDate } from '@/lib/blog';
 
 export const metadata: Metadata = {
-  title: 'Blog — Meridyen Yatırım',
+  title: 'Blog — Kuzey Menkul Değerler',
   description: 'Borsa, emir türleri, takas, fonlar ve risk yönetimi hakkında yatırımcı rehberleri.',
   alternates: { canonical: '/blog' },
 };

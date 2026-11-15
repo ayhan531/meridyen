@@ -10,14 +10,14 @@ export function generateStaticParams() { return POSTS.map((p) => ({ slug: p.slug
 export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params; const p = bySlug(slug);
   if (!p) return {};
-  return { title: `${p.title} — Meridyen Yatırım`, description: p.excerpt, alternates: { canonical: `/blog/${p.slug}` }, openGraph: { title: p.title, description: p.excerpt, type: 'article', locale: 'tr_TR', publishedTime: p.date } };
+  return { title: `${p.title} — Kuzey Menkul Değerler`, description: p.excerpt, alternates: { canonical: `/blog/${p.slug}` }, openGraph: { title: p.title, description: p.excerpt, type: 'article', locale: 'tr_TR', publishedTime: p.date } };
 }
 
 export default async function Post({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params; const p = bySlug(slug);
   if (!p) notFound();
   const i = POSTS.findIndex((x) => x.slug === p.slug), more = POSTS.filter((x) => x.slug !== p.slug).slice(i % 3, (i % 3) + 3);
-  const ld = { '@context': 'https://schema.org', '@type': 'Article', headline: p.title, description: p.excerpt, datePublished: p.date, inLanguage: 'tr', publisher: { '@type': 'Organization', name: 'Meridyen Yatırım' } };
+  const ld = { '@context': 'https://schema.org', '@type': 'Article', headline: p.title, description: p.excerpt, datePublished: p.date, inLanguage: 'tr', publisher: { '@type': 'Organization', name: 'Kuzey Menkul Değerler' } };
   return (
     <>
       <SiteHeader />

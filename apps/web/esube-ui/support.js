@@ -12,7 +12,7 @@ export async function destekBilgisi() {
     onbellek = {
       tel,
       eposta,
-      wa: wa ? "https://wa.me/" + wa + "?text=" + encodeURIComponent("Merhaba, Meridyen Yatırım destek ekibiyle görüşmek istiyorum.") : "",
+      wa: wa ? "https://wa.me/" + wa + "?text=" + encodeURIComponent("Merhaba, Kuzey Menkul Değerler destek ekibiyle görüşmek istiyorum.") : "",
     };
   } catch {
     onbellek = { tel: "", eposta: "", wa: "" };

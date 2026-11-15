@@ -314,14 +314,14 @@ export async function apiAdminProjectExport(ctx: Ctx): Promise<Reply> {
   const [settings, adminId] = await withConn(async (conn) => {
     const admin = await ctx.requireAdmin(conn);
     const s = await settingsMap(conn);
-    const brand = strip(s.brand_name ?? 'Meridyen');
+    const brand = strip(s.brand_name ?? 'Kuzey');
     const slug = brand.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'investment-platform';
     await audit(conn, admin.id, `export_project_${slug}`, 'system_settings', null);
     await conn.commit();
     return [s, admin.id] as const;
   });
   void adminId;
-  const brandName = strip(settings.brand_name ?? 'Meridyen');
+  const brandName = strip(settings.brand_name ?? 'Kuzey');
   const slug = brandName.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'investment-platform';
   const root = PROJECT_ROOT();
   const excludedDirs = new Set(['node_modules', '.git', 'artifacts', '.gradle', 'build', '.next', 'dist', 'coverage']);
@@ -1100,7 +1100,7 @@ export async function apiAdminDbRestore(ctx: Ctx): Promise<Reply> {
   const raw = await ctx.readRaw(400_000_000);
   let dump: any;
   try { dump = JSON.parse(raw.toString('utf-8')); } catch { throw new HttpError(400, 'Geçerli bir yedek dosyası değil'); }
-  if (!dump || dump.format !== BACKUP_FORMAT || typeof dump.tables !== 'object' || !dump.tables) throw new HttpError(400, 'Geçerli bir Meridyen yedeği değil');
+  if (!dump || dump.format !== BACKUP_FORMAT || typeof dump.tables !== 'object' || !dump.tables) throw new HttpError(400, 'Geçerli bir Kuzey Menkul yedeği değil');
   if (!dump.tables.users || !dump.tables.accounts || !dump.tables.user_transactions) throw new HttpError(400, 'Yedek dosyası eksik görünüyor');
   return withConn(async (conn) => {
     const admin = await ctx.requireAdmin(conn);

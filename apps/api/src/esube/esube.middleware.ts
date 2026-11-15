@@ -4,7 +4,7 @@ import { HttpError, ValueError } from './common';
 import { corsHeaders, Ctx, Reply, SECURITY_HEADERS } from './ctx';
 import { apiHealth, routeApi, serveUpload } from './router';
 
-/** Meridyen'in kendi uçları; /api altında olsalar da e-şubeye girmezler. */
+/** Kuzey Menkul'in kendi uçları; /api altında olsalar da e-şubeye girmezler. */
 const MERIDYEN_PREFIXES = ['/api/auth', '/api/state', '/api/prices'];
 
 function parseQuery(url: string): Record<string, string[]> {

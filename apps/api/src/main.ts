@@ -26,6 +26,6 @@ async function bootstrap() {
   }));
   app.enableShutdownHooks();
   await app.listen(config.port, '0.0.0.0');
-  new Logger('API').log(`Meridyen API ${config.port} portunda (${config.isProd ? 'üretim' : 'geliştirme'})`);
+  new Logger('API').log(`Kuzey Menkul API ${config.port} portunda (${config.isProd ? 'üretim' : 'geliştirme'})`);
 }
 bootstrap();

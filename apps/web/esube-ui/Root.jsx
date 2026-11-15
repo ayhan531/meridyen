@@ -1,4 +1,4 @@
-// Meridyen e-şube / yönetim kabuğu. Oturum çerezle yürür (/api/me); giriş tek yerde, /giris sayfasında yapılır.
+// Kuzey Menkul e-şube / yönetim kabuğu. Oturum çerezle yürür (/api/me); giriş tek yerde, /giris sayfasında yapılır.
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import Esube from "./esube/App.jsx";
 import AdminConsole from "./AdminConsole.jsx";
@@ -9,6 +9,7 @@ import "./style.css";
 import "./extra.css";
 import "./theme.css";
 import "./meridyen.css";
+import "./kuzey.css";
 
 const normalize = (data) => data?.user || (data?.id ? data : null);
 const BOSTA_CIKIS_MS = 30 * 60 * 1000; // 30 dk işlem yapılmazsa oturum kapanır

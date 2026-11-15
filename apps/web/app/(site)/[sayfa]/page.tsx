@@ -7,7 +7,7 @@ export const dynamicParams = false;
 export function generateStaticParams() { return Object.keys(PAGES).map((sayfa) => ({ sayfa })); }
 export async function generateMetadata({ params }: { params: Promise<{ sayfa: string }> }): Promise<Metadata> {
   const { sayfa } = await params; const p = PAGES[sayfa];
-  return p ? { title: `${p.title} — Meridyen Yatırım`, description: p.lead } : {};
+  return p ? { title: `${p.title} — Kuzey Menkul Değerler`, description: p.lead } : {};
 }
 export default async function Page({ params }: { params: Promise<{ sayfa: string }> }) {
   const { sayfa } = await params;

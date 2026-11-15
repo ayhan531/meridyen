@@ -466,7 +466,7 @@ export async function moneyRows(conn: Conn, where: string, params: any[]): Promi
 
 export function publicUser(user: Row, includeSensitive = false): Row {
   const id = Math.trunc(num(user.id));
-  const acc = user.account_no || `GM${String(id).padStart(6, '0')}`;
+  const acc = user.account_no || `MY${String(id).padStart(6, "0")}`;
   const data: Row = {
     id: user.id,
     account_no: acc,

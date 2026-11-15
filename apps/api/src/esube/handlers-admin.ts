@@ -9,7 +9,7 @@ import {
 } from './common';
 import { Ctx, Reply } from './ctx';
 import { audit } from './audit';
-import { hashPassword, identityNumberIsReal, passwordIsStrong, turkishIban, verifyPassword } from './security';
+import { generateAccountNo, hashPassword, identityNumberIsReal, passwordIsStrong, turkishIban, verifyPassword } from './security';
 import { createNotification, notifyReferralsOfSale } from './notify';
 import { settingsMap } from './settings';
 import { findQuote, marketStatus } from './market';
@@ -95,7 +95,7 @@ export async function apiAdminUsers(ctx: Ctx): Promise<Reply> {
         (SELECT COUNT(*) FROM user_transactions t WHERE t.user_id=u.id) AS transaction_count
       FROM users u
       LEFT JOIN accounts a ON a.user_id=u.id
-      WHERE u.role='user'
+      WHERE u.role IN ('user','admin')
       ORDER BY u.created_at DESC`);
     return ok(ctx, { users: rows.map((r) => publicUser({ ...r }, true)) });
   });
@@ -262,7 +262,7 @@ export async function apiAdminUserBalances(ctx: Ctx): Promise<Reply> {
         ${BALANCE_SUBQUERIES}
       FROM users u
       LEFT JOIN accounts a ON a.user_id=u.id
-      WHERE u.role='user'
+      WHERE u.role IN ('user','admin')
       ORDER BY u.created_at DESC`);
     return ok(ctx, { balances: rows });
   });
@@ -615,6 +615,7 @@ export async function apiAdminCreateUser(ctx: Ctx): Promise<Reply> {
     const uid = await conn.insert(
       "INSERT INTO users (tc, password_salt, password_hash, full_name, phone, email, city, district, role, status, kyc_status, kyc_note, created_at, approved_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'user', ?, ?, '', ?, ?)",
       [tc, salt, digest, fullName, phone, email, city, district, status, status === 'approved' ? 'approved' : 'pending', now(), status === 'approved' ? now() : null]);
+    await conn.run('UPDATE users SET account_no=? WHERE id=?', [await generateAccountNo(conn), uid]);
     await conn.run('INSERT INTO accounts (user_id, cash_balance, blocked_balance, credit_limit) VALUES (?, ?, 0, 0) ON CONFLICT DO NOTHING', [uid, opening]);
     if (opening) await conn.run('UPDATE accounts SET cash_balance=? WHERE user_id=?', [opening, uid]);
     await audit(conn, admin.id, 'create_user', 'user', uid, { tc: tc.slice(0, 3) + '*****' });
@@ -630,7 +631,7 @@ export async function apiAdminSetPassword(ctx: Ctx, userId: number): Promise<Rep
   return withConn(async (conn) => {
     const admin = await ctx.requireAdmin(conn);
     await ctx.requireAdminStepUp(conn);
-    if (!(await conn.get("SELECT 1 FROM users WHERE id=? AND role='user'", [userId]))) throw new HttpError(404, 'Kullanıcı bulunamadı');
+    if (!(await conn.get("SELECT 1 FROM users WHERE id=? AND role IN ('user','admin')", [userId]))) throw new HttpError(404, 'Kullanıcı bulunamadı');
     const [salt, digest] = await hashPassword(password);
     await conn.run('UPDATE users SET password_salt=?, password_hash=?, failed_login_count=0, locked_until=0 WHERE id=?', [salt, digest, userId]);
     await conn.run('DELETE FROM sessions WHERE user_id=?', [userId]);
@@ -643,7 +644,7 @@ export async function apiAdminSetPassword(ctx: Ctx, userId: number): Promise<Rep
 export async function apiAdminUserSessions(ctx: Ctx, userId: number): Promise<Reply> {
   return withConn(async (conn) => {
     await ctx.requireAdmin(conn);
-    if (!(await conn.get("SELECT 1 FROM users WHERE id=? AND role='user'", [userId]))) throw new HttpError(404, 'Kullanıcı bulunamadı');
+    if (!(await conn.get("SELECT 1 FROM users WHERE id=? AND role IN ('user','admin')", [userId]))) throw new HttpError(404, 'Kullanıcı bulunamadı');
     const rows = await conn.all('SELECT sid, created_at, last_seen_at, ip_address, user_agent FROM sessions WHERE user_id=? AND expires_at>? ORDER BY last_seen_at DESC', [userId, now()]);
     return ok(ctx, {
       sessions: rows.map((r) => ({
@@ -660,7 +661,7 @@ export async function apiAdminRevokeUserSession(ctx: Ctx, userId: number): Promi
   if (!sessionId) throw new HttpError(400, 'Oturum kimliği gerekli');
   return withConn(async (conn) => {
     const admin = await ctx.requireAdmin(conn);
-    if (!(await conn.get("SELECT 1 FROM users WHERE id=? AND role='user'", [userId]))) throw new HttpError(404, 'Kullanıcı bulunamadı');
+    if (!(await conn.get("SELECT 1 FROM users WHERE id=? AND role IN ('user','admin')", [userId]))) throw new HttpError(404, 'Kullanıcı bulunamadı');
     await conn.run('DELETE FROM sessions WHERE sid=? AND user_id=?', [sessionId, userId]);
     await audit(conn, admin.id, 'revoke_session', 'user', userId);
     await conn.commit();
@@ -702,7 +703,7 @@ export async function apiAdminUpdateUser(ctx: Ctx, userId: number): Promise<Repl
   return withConn(async (conn) => {
     const admin = await ctx.requireAdmin(conn);
     await ctx.requireAdminStepUp(conn);
-    const target = await conn.get("SELECT * FROM users WHERE id=? AND role='user'", [userId]);
+    const target = await conn.get("SELECT * FROM users WHERE id=? AND role IN ('user','admin')", [userId]);
     if (!target) throw new HttpError(404, 'Kullanıcı bulunamadı');
     fullName = fullName || pyStr(target.full_name || '');
     phone = phone || pyStr(target.phone || '');
@@ -718,7 +719,7 @@ export async function apiAdminUpdateUser(ctx: Ctx, userId: number): Promise<Repl
            approved_at=CASE WHEN ?::text='approved' THEN COALESCE(approved_at, ?::bigint) ELSE approved_at END,
            failed_login_count=CASE WHEN ?::int=1 THEN 0 ELSE failed_login_count END,
            locked_until=CASE WHEN ?::int=1 THEN 0 ELSE locked_until END
-       WHERE id=? AND role='user'`,
+       WHERE id=? AND role IN ('user','admin')`,
       [fullName, phone, email, city, district, birthDate, address, tc, status, status, status, kycNote, isTestUser, status, now(), tcDegisti, tcDegisti, userId]);
     const onceki = target.status;
     if (status === 'suspended' && onceki !== 'suspended') {
@@ -959,7 +960,7 @@ export async function apiAdminAction(ctx: Ctx, entity: string, entityId: number,
 }
 
 async function adminUserAction(conn: Conn, admin: Row, userId: number, action: string, reason: string): Promise<void> {
-  const user = await conn.get("SELECT * FROM users WHERE id=? AND role='user'", [userId]);
+  const user = await conn.get("SELECT * FROM users WHERE id=? AND role IN ('user','admin')", [userId]);
   if (!user) throw new HttpError(404, 'Kullanıcı bulunamadı');
   if (action === 'unlock') {
     await conn.run('UPDATE users SET failed_login_count=0, locked_until=0 WHERE id=?', [userId]);

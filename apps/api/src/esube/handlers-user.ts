@@ -832,7 +832,7 @@ export async function apiCreateMoneyRequest(ctx: Ctx): Promise<Reply> {
     }
     let receipt: Row = form !== null && requestType === 'deposit' ? await saveMoneyReceipt(conn, form, user.id) : {};
     if (requestType === 'deposit') {
-      transferCode = transferCode || `${user.account_no || 'GM'}-${now()}`;
+      transferCode = transferCode || `${user.account_no || 'MY'}-${now()}`;
       const selectedIban = turkishIban(accountRef);
       const bankRow = selectedIban ? await conn.get("SELECT * FROM system_bank_accounts WHERE is_active=1 AND REPLACE(iban, ' ', '')=?", [selectedIban]) : undefined;
       if (!bankRow) throw new HttpError(400, 'Geçerli ve aktif transfer hesabı bulunamadı');

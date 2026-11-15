@@ -1042,3 +1042,94 @@ async function adminMoneyAction(conn: Conn, admin: Row, requestId: number, actio
   await audit(conn, admin.id, 'approve_money_request', 'money_request', requestId, { amount: flt(item.amount), reason });
   await createNotification(conn, item.user_id, `${turu} talebiniz onaylandı`, `₺${fmt2(Number(item.amount))} tutarındaki ${turu.toLowerCase()} talebiniz onaylandı.`, 'islem');
 }
+
+
+/* ------------------------------------------------------------- veritabanı yedeği */
+
+const BACKUP_FORMAT = 'meridyen-yedek-v1';
+const BACKUP_SKIP = new Set(['sessions']);   // oturumlar yedeğe girmez (yedek dosyasından oturum çalınamasın)
+
+async function backupTables(conn: any): Promise<string[]> {
+  const rows = await conn.all("SELECT tablename FROM pg_tables WHERE schemaname='esube' ORDER BY tablename");
+  return rows.map((r: any) => String(r.tablename)).filter((t: string) => !BACKUP_SKIP.has(t));
+}
+
+/** Dış anahtar bağımlılıklarına göre ekleme sırası (önce bağımsız tablolar). */
+async function fkOrder(conn: any, tables: string[]): Promise<string[]> {
+  const deps = await conn.all(
+    `SELECT c.conrelid::regclass::text AS child, c.confrelid::regclass::text AS parent
+       FROM pg_constraint c JOIN pg_namespace n ON n.oid=c.connamespace WHERE c.contype='f' AND n.nspname='esube'`);
+  const clean = (t: string) => t.replace(/^esube\./, '').replace(/"/g, '');
+  const need = new Map<string, Set<string>>(tables.map((t) => [t, new Set<string>()]));
+  for (const d of deps) { const c = clean(d.child), p = clean(d.parent); if (c !== p && need.has(c) && need.has(p)) need.get(c)!.add(p); }
+  const out: string[] = []; const left = new Set(tables);
+  while (left.size) {
+    const ready = [...left].filter((t) => [...need.get(t)!].every((p) => !left.has(p)));
+    if (!ready.length) { out.push(...left); break; }
+    for (const t of ready) { out.push(t); left.delete(t); }
+  }
+  return out;
+}
+
+const enc = (v: any): any => (Buffer.isBuffer(v) ? { __b64: v.toString('base64') } : v instanceof Date ? { __date: v.toISOString() } : v);
+const dec = (v: any): any => (v && typeof v === 'object' && '__b64' in v ? Buffer.from(v.__b64, 'base64') : v && typeof v === 'object' && '__date' in v ? new Date(v.__date) : v);
+
+async function buildBackup(conn: any): Promise<Buffer> {
+  const tables = await backupTables(conn);
+  const data: Record<string, any[]> = {};
+  for (const t of tables) data[t] = (await conn.all(`SELECT * FROM "${t}"`)).map((r: any) => Object.fromEntries(Object.entries(r).map(([k, v]) => [k, enc(v)])));
+  return Buffer.from(JSON.stringify({ format: BACKUP_FORMAT, created_at: new Date().toISOString(), tables: data }));
+}
+
+export async function apiAdminDbBackup(ctx: Ctx): Promise<Reply> {
+  return withConn(async (conn) => {
+    const admin = await ctx.requireAdmin(conn);
+    await ctx.requireAdminStepUp(conn);
+    await audit(conn, admin.id, 'db_backup_download', 'system', null);
+    await conn.commit();
+    const body = await buildBackup(conn);
+    const d = new Date(); const pad = (n: number) => String(n).padStart(2, '0');
+    const filename = `meridyen-yedek-${d.getFullYear()}${pad(d.getMonth() + 1)}${pad(d.getDate())}-${pad(d.getHours())}${pad(d.getMinutes())}.db`;
+    return { status: 200, headers: { 'Content-Type': 'application/octet-stream', 'Content-Disposition': `attachment; filename="${filename}"`, 'Content-Length': String(body.length), 'Cache-Control': 'no-store' }, body };
+  });
+}
+
+export async function apiAdminDbRestore(ctx: Ctx): Promise<Reply> {
+  if (ctx.q('confirm') !== 'EVET') throw new HttpError(400, 'Onay gerekli');
+  const raw = await ctx.readRaw(400_000_000);
+  let dump: any;
+  try { dump = JSON.parse(raw.toString('utf-8')); } catch { throw new HttpError(400, 'Geçerli bir yedek dosyası değil'); }
+  if (!dump || dump.format !== BACKUP_FORMAT || typeof dump.tables !== 'object' || !dump.tables) throw new HttpError(400, 'Geçerli bir Meridyen yedeği değil');
+  if (!dump.tables.users || !dump.tables.accounts || !dump.tables.user_transactions) throw new HttpError(400, 'Yedek dosyası eksik görünüyor');
+  return withConn(async (conn) => {
+    const admin = await ctx.requireAdmin(conn);
+    await ctx.requireAdminStepUp(conn);
+    const known = await backupTables(conn);
+    const tables = await fkOrder(conn, known.filter((t) => Array.isArray(dump.tables[t])));
+    // Geri dönüş için mevcut veriyi diske yaz (yazılabilir ilk klasöre).
+    const safetyName = `meridyen-onceki-${new Date().toISOString().replace(/[-:T]/g, '').slice(0, 14)}.db`;
+    let safetyCopy = '';
+    try {
+      const prev = await buildBackup(conn);
+      for (const dir of [process.env.BACKUP_DIR, '/var/data', require('os').tmpdir()].filter(Boolean) as string[]) {
+        try { fs.mkdirSync(dir, { recursive: true }); fs.writeFileSync(path.join(dir, safetyName), prev); safetyCopy = safetyName; break; } catch { /* sıradaki klasör */ }
+      }
+    } catch { /* yedek alınamasa da yükleme tek işlemdir; hata olursa geri alınır */ }
+    await conn.lock();
+    await conn.run(`TRUNCATE ${tables.map((t) => `"${t}"`).join(', ')}, "sessions" RESTART IDENTITY CASCADE`);
+    for (const t of tables) {
+      const cols = (await conn.all("SELECT column_name FROM information_schema.columns WHERE table_schema='esube' AND table_name=?", [t])).map((r: any) => String(r.column_name));
+      for (const row of dump.tables[t]) {
+        const keys = Object.keys(row).filter((k) => cols.includes(k));
+        if (!keys.length) continue;
+        await conn.run(`INSERT INTO "${t}" (${keys.map((k) => `"${k}"`).join(',')}) VALUES (${keys.map(() => '?').join(',')})`, keys.map((k) => dec(row[k])));
+      }
+      if (cols.includes('id')) {
+        const serial = await conn.get("SELECT pg_get_serial_sequence(?, 'id') AS seq", [`esube."${t}"`]);
+        if (serial?.seq) await conn.run(`SELECT setval('${serial.seq}', COALESCE((SELECT MAX(id) FROM "${t}"), 0) + 1, false)`);
+      }
+    }
+    void admin;
+    return ok(ctx, { ok: true, safety_copy: safetyCopy });
+  });
+}

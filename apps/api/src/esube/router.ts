@@ -72,6 +72,7 @@ const GET: Record<string, Handler> = {
   '/api/admin/stock-names': A.apiAdminStockNames,
   '/api/admin/participation': A.apiAdminParticipationList,
   '/api/admin/audit': A.apiAdminAudit,
+  '/api/admin/db-backup': A.apiAdminDbBackup,
   '/api/admin/stock-descriptions': A.apiAdminStockDescriptions,
   '/api/admin/render/status': A.apiAdminRenderStatus,
 };
@@ -98,6 +99,7 @@ const POST: Record<string, Handler> = {
   '/api/orders': U.apiCreateOrder,
   '/api/money-requests': U.apiCreateMoneyRequest,
   '/api/admin/step-up': A.apiAdminStepUp,
+  '/api/admin/db-restore': A.apiAdminDbRestore,
   '/api/admin/bank-accounts': A.apiAdminSaveSystemBankAccount,
   '/api/admin/system-settings': A.apiAdminSaveSystemSettings,
   '/api/admin/prices': A.apiAdminSavePrice,

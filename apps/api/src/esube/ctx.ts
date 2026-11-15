@@ -195,6 +195,13 @@ export class Ctx {
     return v;
   }
 
+  /** Ham gövde (yedek dosyası gibi büyük yüklemeler için). */
+  async readRaw(maxBytes: number): Promise<Buffer> {
+    const length = this.contentLength();
+    if (length <= 0 || length > maxBytes) throw new HttpError(413, 'Dosya boyutu geçersiz');
+    return readBody(this.req, length);
+  }
+
   async readMultipart(): Promise<MultipartForm> {
     const length = this.contentLength();
     if (length > cfg.maxUploadBytes * 4) throw new HttpError(413, 'Dosya boyutu çok büyük');

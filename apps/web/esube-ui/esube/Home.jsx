@@ -13,7 +13,7 @@ import { T } from "./lang.js";
 export function InstrumentRow({ item, onClick, extra }) {
   const up = item.change >= 0;
   return (
-    <button className="inst-row" onClick={onClick}>
+    <button className={"inst-row " + (up ? "is-up" : "is-down")} onClick={onClick}>
       <Symbol logo={item.logo} letter={item.symbol} size={34} />
       <span className="inst-copy">
         <strong>{item.symbol}</strong>

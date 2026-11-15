@@ -125,3 +125,66 @@ body.mrdn-admin{background:var(--canvas)}
 .ac-drawer-brand .brand{font-size:17px;line-height:1.15}
 .ac-drawer-brand strong{white-space:nowrap;font-size:13px}
 .ac-drawer-brand small{white-space:nowrap}
+
+/* ==========================================================================
+   Yerleşim katmanı: aynı akış, farklı düzen.
+   ========================================================================== */
+
+/* Liste satırları: defter düzeni. Solda yön şeridi, kare simge, değişim rozeti. */
+.esube .inst-row,.overlay .inst-row{padding:11px 12px 11px 11px;border-left:3px solid transparent;border-bottom:1px solid var(--edge);gap:12px;background:transparent;transition:background .12s}
+.esube .inst-row:hover,.overlay .inst-row:hover{background:var(--soft)}
+.esube .inst-row.is-up,.overlay .inst-row.is-up{border-left-color:var(--green)}
+.esube .inst-row.is-down,.overlay .inst-row.is-down{border-left-color:var(--red)}
+.esube .inst-copy strong,.overlay .inst-copy strong{font-size:calc(15px*var(--s));letter-spacing:.01em}
+.esube .inst-price strong,.overlay .inst-price strong{font-family:var(--serif);font-size:calc(16.5px*var(--s));font-variant-numeric:lining-nums tabular-nums}
+.esube .inst-price span.up,.overlay .inst-price span.up{background:var(--tint-green);color:var(--green);padding:2px 8px;border-radius:4px}
+.esube .inst-price span.down,.overlay .inst-price span.down{background:var(--rose);color:var(--red);padding:2px 8px;border-radius:4px}
+.esube .symbol,.overlay .symbol,.esube .ava,.overlay .ava{border-radius:6px!important}
+.esube .hline,.overlay .hline{background:var(--edge)}
+
+/* Alt gezinti: yüzen kapsül, aktif sekme dolu */
+.esube .navbar,.overlay .navbar{margin:0 12px calc(10px + env(safe-area-inset-bottom,0px));border:1px solid var(--edge);border-radius:16px;padding:5px;gap:3px;box-shadow:0 10px 28px rgba(8,47,37,.14);background:var(--surface)}
+.esube .navbar button,.overlay .navbar button{border-radius:12px;padding:5px 0 4px;transition:background .15s,color .15s}
+.esube .navbar button.active,.overlay .navbar button.active{background:var(--pine);color:#fff}
+[data-theme="dark"] .esube .navbar button.active{color:#06241B}
+.esube .navbar button.active::before,.overlay .navbar button.active::before{display:none}
+.esube .navbar .nav-center,.overlay .navbar .nav-center{background:var(--brass);color:#1d1503;box-shadow:none;border-radius:10px}
+.esube .navbar button.active .nav-center{background:var(--brass)}
+
+/* Portföy sekmeleri: çizgili sekme, büyük düğme yok */
+.esube .pf-tabs,.overlay .pf-tabs{gap:0;border-bottom:1px solid var(--edge)}
+.esube .pf-tabs button,.overlay .pf-tabs button{height:44px;border-radius:0;border:0;background:transparent;box-shadow:none;color:var(--muted);font-weight:600}
+.esube .pf-tabs button.on,.overlay .pf-tabs button.on{background:transparent;color:var(--pine);box-shadow:inset 0 -3px 0 var(--brass);font-weight:800}
+
+/* Hesap hızlı işlemleri: iki sütun, yatay kartlar */
+.esube .quick-grid,.overlay .quick-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.esube .quick-grid .tile-btn,.overlay .quick-grid .tile-btn{flex-direction:row;display:flex;align-items:center;justify-content:flex-start;gap:12px;padding:12px;border:1px solid var(--edge);border-radius:8px;background:var(--surface);text-align:left}
+.esube .quick-grid span:not(.tile),.overlay .quick-grid span:not(.tile){font-size:calc(13px*var(--s));font-weight:700;text-align:left}
+.esube .scard,.overlay .scard{border:1px solid var(--edge);border-radius:8px;background:var(--surface)}
+
+/* Masaüstü: koyu çam yan menü, geniş içerik */
+@media (min-width:761px){
+  .esube .sidebar,.overlay .sidebar{width:252px;background:var(--pine-deep);border-right:0;padding:22px 14px;gap:2px}
+  .esube .sidebar .brandmark,.overlay .sidebar .brandmark{font-family:var(--serif);font-size:19px;line-height:1.2;color:#fff;padding:2px 10px 22px;display:flex;align-items:center;gap:10px;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:12px}
+  .esube .sidebar .brandmark img,.overlay .sidebar .brandmark img{width:34px;height:34px;flex:none}
+  .esube .sidebar button,.overlay .sidebar button{border-radius:4px;color:rgba(230,239,235,.78);border-left:3px solid transparent;padding:12px 12px;font-weight:600}
+  .esube .sidebar button:hover,.overlay .sidebar button:hover{background:rgba(255,255,255,.06)}
+  .esube .sidebar button.active,.overlay .sidebar button.active{background:rgba(255,255,255,.09);color:#fff;border-left-color:var(--brass)}
+  .esube .sidebar button.trade-cta,.overlay .sidebar button.trade-cta{background:var(--brass);color:#1d1503;border-left-color:transparent;margin-top:10px;justify-content:center}
+  .esube .sidebar button.trade-cta.active{background:var(--brass);color:#1d1503}
+  .esube .page,.overlay .page{max-width:980px}
+  .esube .inst-row,.overlay .inst-row{padding-left:16px;padding-right:16px}
+}
+
+/* Yönetim paneli: kurumsal tablo, üst çizgili sayaçlar */
+.ac-cards article{border-left:1px solid var(--edge);border-top:3px solid var(--brass)}
+.ac-cards strong,.ac-sayac strong{font-size:clamp(20px,4.6vw,26px)}
+.ac-cards span,.ac-sayac span{font-weight:600}
+.ac-tablo th{background:var(--pine-deep);color:#fff;font-weight:700;letter-spacing:.01em}
+.ac-tablo tbody tr:nth-child(even) td{background:var(--soft)}
+.ac-top{position:sticky;top:0;background:var(--canvas);z-index:5}
+@media(min-width:1000px){.admin-stage .ac-kabuk .screen{padding-left:clamp(24px,3vw,48px);padding-right:clamp(24px,3vw,48px)}}
+.esube .sidebar .brandmark span,.overlay .sidebar .brandmark span{font-family:var(--serif)!important;font-style:normal;font-weight:700;font-size:18px;line-height:1.15}
+@media (max-width:760px){.esube-body{padding-bottom:28px}}
+.ac-cards article{border-left-color:var(--edge)!important}
+.ac-top{position:static;background:transparent}

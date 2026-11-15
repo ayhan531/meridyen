@@ -72,7 +72,7 @@ export const fmtPhone = (ph: string) => { const d = normPhone(ph).slice(0, 10); 
 /** Giriş sonrası yalnızca site içi uygulama adresine dönülür (açık yönlendirme olmasın). */
 export function safeNext(next: string | null | undefined): string {
   const n = String(next || '');
-  return /^\/app(\/)?(\?[\w=&-]*)?(#[\w-]*)?$/.test(n) ? n : '/app';
+  return /^\/(app|admin)(\/)?(\?[\w=&-]*)?(#[\w-]*)?$/.test(n) ? n : '/app';
 }
 
 /* ---------- bu cihazdaki hesaplar ---------- */

@@ -93,7 +93,7 @@ export async function latestNews(): Promise<[Row[], Row]> {
     if (current - feedCache.checked >= 120) {
       feedCache.checked = current;
       try {
-        const { body } = await httpBytes(FEED_URL, { headers: { 'User-Agent': 'Ottoman/1.0' }, timeoutMs: 8000, maxBytes: 2_000_000 });
+        const { body } = await httpBytes(FEED_URL, { headers: { 'User-Agent': 'Meridyen/1.0' }, timeoutMs: 8000, maxBytes: 2_000_000 });
         const items = parseNews(body, current);
         if (!items.length) throw Object.assign(new Error('No recent publisher articles'), { pyName: 'ValueError' });
         Object.assign(feedCache, { items, updated: current, error: null });
@@ -618,7 +618,7 @@ function parseLinks(html: string): LinkPair[] {
 }
 
 async function fetchOfficialText(url: string): Promise<string> {
-  const { body, headers } = await httpBytes(url, { headers: { 'User-Agent': 'Ottoman/1.0' }, timeoutMs: 6000 });
+  const { body, headers } = await httpBytes(url, { headers: { 'User-Agent': 'Meridyen/1.0' }, timeoutMs: 6000 });
   return decodeBody(body, headers);
 }
 

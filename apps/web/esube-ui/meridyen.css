@@ -1,0 +1,19 @@
+/* Meridyen markası: Ottoman e-şube arayüzünün üstüne yeşil kurumsal ton ve Manrope yazı tipi. */
+html, body { margin: 0; min-height: 100%; background: var(--canvas, #fff); color: var(--ink, #101321); font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased; }
+html[data-theme="dark"] body { background: #171922; }
+.esube, .overlay, .esube button, .esube input, .overlay button, .overlay input, .esube textarea, .esube select { font-family: "Manrope", system-ui, -apple-system, "Segoe UI", sans-serif; }
+.mrdn-boot { position: fixed; inset: 0; display: grid; place-items: center; background: var(--canvas, #fff); }
+.mrdn-boot > span { width: 34px; height: 34px; border-radius: 50%; border: 3px solid rgba(30,75,65,.18); border-top-color: #1E4B41; animation: mrdnspin .8s linear infinite; }
+@keyframes mrdnspin { to { transform: rotate(360deg); } }
+/* Yönetim paneli geniş ekranda sayfa gibi kayar */
+body.mrdn-admin { overflow: auto; background: #eef1f6; }
+html[data-theme="dark"] body.mrdn-admin { background: #11131a; }
+
+/* Dar ekranda üst şerit: sol avatar, ortada marka, sağda üç ikon sığsın */
+.esube .brandbar, .overlay .brandbar { grid-template-columns: auto minmax(0, 1fr) auto; column-gap: 6px; }
+.esube .brand-word, .overlay .brand-word { overflow: hidden; text-overflow: clip; font-size: calc(28px * var(--s)); }
+@media (max-width: 460px) { .esube .brand-sub, .overlay .brand-sub { display: none; } }
+
+/* Yönetim paneli ekranı tam kaplar (kayan kart yok, taşma yok) */
+.admin-stage { padding: 0 !important; display: block; min-height: 100dvh; background: var(--canvas, #fff); }
+.admin-stage .phone, .admin-stage .admin-phone { width: 100%; max-width: none; height: 100vh; height: 100dvh; border-radius: 0; box-shadow: none; }

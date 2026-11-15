@@ -1,0 +1,230 @@
+// Hesap — MainPage.Home.cs içindeki BuildAccount() birebir karşılığı.
+import React, { useState, useRef, useEffect } from "react";
+import Icon from "./icons.jsx";
+import { Divided, Sheet } from "./ui.jsx";
+import { money } from "./market.js";
+import { T } from "./lang.js";
+import { destekBilgisi } from "../support.js";
+
+const Row = ({ title, subtitle, onClick }) => (
+  <button className="list-row" onClick={onClick}>
+    <span className="copy"><strong>{title}</strong><span>{subtitle}</span></span>
+    <Icon name="chevron" size={18} color="var(--muted)" />
+  </button>
+);
+
+export default function Account({
+  brandBar, me, account, stockValue, monogram, onOpenPersonal, onOpenSecurity, onOpenContracts,
+  onOpenNotifySettings, onTransfer, onHistory, onNotice, onPortfolio, onBankAccounts, version, onLogout,
+  onOpenKyc, kycApproved, suspended, moneyRequests, onCancelMoneyRequest,
+}) {
+  const [hidden, setHidden] = useState(false);
+  const [supportOpen, setSupportOpen] = useState(false);
+  const [destek, setDestek] = useState({ tel: "", eposta: "", wa: "" });
+  useEffect(() => { if (supportOpen) destekBilgisi().then(setDestek); }, [supportOpen]);
+  const bakiyeGecmisiRef = useRef(null);
+  const cash = Number(account?.cash_balance || 0);
+  const pending = Number(account?.pending_balance || 0);
+  const legacyBlocked = Number(account?.blocked_balance || 0);
+  const pendingWithdrawals = Number(account?.pending_withdrawals || 0);
+  const blocked = Number(account?.orders_reserved || 0);
+  // Hisse alımında bakiye her zaman kullanılabilir:
+  const available = Math.max(0, cash + pending - legacyBlocked - pendingWithdrawals);
+  const total = cash + pending + stockValue;
+  const mask = (text) => (hidden ? "••••••" : text);
+
+  return (
+    <div className="page gap-13">
+      {brandBar}
+
+      <button className="card outline pcard" onClick={onOpenPersonal}>
+        <Icon name="chevron" size={18} color="var(--muted)" className="pcard-chevron" />
+        <span className="ava n50">{me?.avatar_url ? <img src={me.avatar_url} alt="" /> : monogram}</span>
+        <span className="who">
+          <strong>{me?.full_name || "İsim Soyisim"}</strong>
+          <span>{T("Müşteri No:")} {me?.account_no || me?.id || "—"}</span>
+        </span>
+      </button>
+
+      <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+        <div className="summary-head">
+          <span>{T("Finansal özet")}</span>
+          <button className="eye-btn" onClick={() => setHidden((current) => !current)} aria-label={T("Tutarları gizle")}>
+            <Icon name={hidden ? "eye-off" : "eye"} size={18} />
+          </button>
+        </div>
+        <div className="card outline amount-list" onClick={onPortfolio} role="button" tabIndex={0}>
+          <Divided>
+            <div className="amount-row">
+              <span className="lbl">{T("Kullanılabilir bakiye")}</span>
+              <span className="val b p">{mask(money(available))}</span>
+            </div>
+            {pending > 0 && (
+              <div className="amount-row">
+                <span className="lbl"><Icon name="clock" size={15} color="var(--muted)" />{T("T+2 Takas bakiyesi")}</span>
+                <span className="val b">{mask(money(pending))}</span>
+              </div>
+            )}
+            <div className="amount-row">
+              <span className="lbl"><Icon name="lock" size={15} color="var(--muted)" />{T("Emirlerdeki bakiye")}</span>
+              <span className="val b o">{mask(money(blocked))}</span>
+            </div>
+            <div className="amount-row">
+              <span className="lbl">{T("Portföy değeri")}</span>
+              <span className="val">{mask(money(stockValue))}</span>
+            </div>
+            <div className="amount-row">
+              <span className="lbl">{T("Toplam değer")}</span>
+              <span className="val b">{mask(money(total))}</span>
+            </div>
+          </Divided>
+        </div>
+      </div>
+
+      <div className="quick-grid">
+        <button className={`tile-btn${kycApproved ? "" : " tile-passive"}`} onClick={() => onTransfer(true)}>
+          <span className="tile" style={{ background: "var(--tint-green)", color: "var(--ink-green)" }}><Icon name="arrow-down" size={19} /></span>
+          <span>{T("Para yatır")}</span>
+        </button>
+        <button className={`tile-btn${kycApproved ? "" : " tile-passive"}`} onClick={() => onTransfer(false)}>
+          <span className="tile" style={{ background: "var(--tint-blue)", color: "var(--ink-blue)" }}><Icon name="arrow-up" size={19} /></span>
+          <span>{T("Para çek")}</span>
+        </button>
+        <button className={`tile-btn${kycApproved ? "" : " tile-passive"}`} onClick={onBankAccounts}>
+          <span className="tile" style={{ background: "var(--lavender)", color: "var(--purple)" }}><Icon name="card" size={19} /></span>
+          <span>{T("Banka hesaplarım")}</span>
+        </button>
+        <button className="tile-btn" onClick={() => bakiyeGecmisiRef.current?.scrollIntoView({ behavior: "smooth", block: "start" })}>
+          <span className="tile" style={{ background: "var(--soft)", color: "var(--muted)" }}><Icon name="orders" size={19} /></span>
+          <span>{T("Bakiye Geçmişi")}</span>
+        </button>
+      </div>
+
+      <span className="section-label" ref={bakiyeGecmisiRef}>{T("Bakiye Geçmişi")}</span>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 16 }}>
+        {(moneyRequests && moneyRequests.length) ? moneyRequests.map((item) => {
+          const renk = item.status === "rejected" ? "var(--red)" : item.status === "approved" ? "var(--green)" : "var(--ink-blue)";
+          return (
+            <div className="order-card" key={item.id}>
+              <div className="rowline">
+                <strong style={{ fontSize: "calc(15.5px * var(--s))" }}>{item.type_label}</strong>
+                <span style={{ fontSize: "calc(12px * var(--s))", fontWeight: 700, color: "var(--ink-blue)" }}>{money(item.amount)}</span>
+              </div>
+              <span style={{ fontSize: "calc(12px * var(--s))", color: "var(--muted)" }}>
+                {item.created_at_label} &nbsp;<b style={{ color: renk }}>{item.status_label || T("Beklemede")}</b>
+              </span>
+              {!!(item.status === "rejected" && item.admin_note) && (
+                <span style={{ fontSize: "calc(12px * var(--s))", color: "var(--red)" }}>{item.status_label === "İptal" ? T("Not:") : T("Ret nedeni:")} {item.admin_note}</span>
+              )}
+              {item.status === "pending" && item.request_type === "withdraw" && (
+                <button className="btn ghost" onClick={() => onCancelMoneyRequest?.(item)}>{T("Talebi iptal et")}</button>
+              )}
+            </div>
+          );
+        }) : (
+          <div className="order-card">
+            <span style={{ fontSize: "calc(13px * var(--s))", color: "var(--muted)" }}>
+              {T("Henüz bir para yatırma veya çekme talebiniz yok.")}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {suspended && (
+        <div className="card outline kyc-banner" role="status">
+          <Icon name="lock" size={18} color="var(--red, #e5484d)" />
+          <span>{T("Hesabınız askıya alınmıştır. Alım satım, para yatırma ve çekme işlemleri durdurulmuştur. Lütfen referansınızla iletişime geçiniz.")}</span>
+        </div>
+      )}
+      {!kycApproved && !suspended && (
+        <div className="card outline kyc-banner" onClick={onOpenKyc} role="button" tabIndex={0}>
+          {me?.kyc_status === "under_review" ? (
+            <>
+              <Icon name="info" size={18} color="var(--ink-blue)" />
+              <span>{T("Kimlik belgeleriniz incelemede. Onaylandığında bilgilendirileceksiniz.")}</span>
+            </>
+          ) : (
+            <>
+              <Icon name="lock" size={18} color="var(--red, #e5484d)" />
+              <span>{T("Hesabınızı onaylamak için kimlik doğrulama yapmanız gerekmektedir.")}</span>
+            </>
+          )}
+          <Icon name="chevron" size={18} color="var(--muted)" />
+        </div>
+      )}
+
+      <span className="section-label">{T("Hesap İşlemleri")}</span>
+      <div className="card outline list-card">
+        <Divided>
+          <Row title={T("Kişisel bilgiler")} subtitle={T("Kimlik ve iletişim bilgilerinizi yönetin")} onClick={onOpenPersonal} />
+          <Row title={T("Güvenlik")} subtitle={T("Şifre, iki adımlı doğrulama ve güvenlik ayarları")} onClick={onOpenSecurity} />
+          <Row
+            title={T("Kimlik Doğrulama")}
+            subtitle={suspended ? T("Hesabınız askıdadır") : kycApproved ? T("Onaylandı") : me?.kyc_status === "under_review" ? T("İncelemede") : T("Hesabını onaylatmak için belgelerini yükle")}
+            onClick={onOpenKyc}
+          />
+          <Row title={T("Banka hesaplarım")} subtitle={T("Para yatırma ve çekme işlemleri için hesaplarınız")} onClick={onBankAccounts} />
+          <Row title={T("Sözleşmeler")} subtitle={T("Çerçeve sözleşme, risk bildirimi ve bilgilendirme metinleri")} onClick={onOpenContracts} />
+        </Divided>
+      </div>
+
+      <span className="section-label">{T("Diğer")}</span>
+      <div className="card outline list-card">
+        <Divided>
+          <Row title={T("Bildirim ayarları")} subtitle={T("Fiyat, haber ve işlem bildirimleri")} onClick={onOpenNotifySettings} />
+          <Row
+            title={T("Yardım ve destek")}
+            subtitle={T("Müşteri hizmetleri ile iletişime geçin")}
+            onClick={() => setSupportOpen(true)}
+          />
+          <Row
+            title={T("Uygulama hakkında")}
+            subtitle={`${T("Sürüm")} ${version} · ${T("Sürümünüz güncel.")}`}
+            onClick={() => onNotice("Meridyen Yatırım", `${T("Sürüm")} ${version} · ${T("Sürümünüz güncel.")}`)}
+          />
+        </Divided>
+      </div>
+
+      {supportOpen && (
+        <Sheet title={T("Yardım ve destek")} onClose={() => setSupportOpen(false)}>
+          <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+            <span style={{ fontSize: "calc(13.5px * var(--s))", color: "var(--muted)", lineHeight: 1.5 }}>
+              {destek.tel ? T("Müşteri hizmetleri ekibimize telefon ya da WhatsApp üzerinden ulaşabilirsiniz.") : T("Müşteri hizmetleri ekibimize e-posta ile ulaşabilirsiniz.")}
+            </span>
+            {destek.tel && (
+              <div className="card outline" style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 4 }}>
+                <span style={{ fontSize: "calc(12px * var(--s))", color: "var(--muted)" }}>{T("Destek hattı")}</span>
+                <strong style={{ fontSize: "calc(19px * var(--s))", letterSpacing: ".2px" }}>{destek.tel}</strong>
+              </div>
+            )}
+            {destek.eposta && (
+              <div className="card outline" style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: 4 }}>
+                <span style={{ fontSize: "calc(12px * var(--s))", color: "var(--muted)" }}>{T("E-posta")}</span>
+                <strong style={{ fontSize: "calc(16px * var(--s))", wordBreak: "break-all" }}>{destek.eposta}</strong>
+              </div>
+            )}
+            {destek.wa && (
+              <button className="btn" onClick={() => window.open(destek.wa, "_blank", "noopener,noreferrer")}>
+                {T("WhatsApp ile yaz")}
+              </button>
+            )}
+            {!destek.tel && !destek.eposta && (
+              <button className="btn" onClick={() => window.open("/iletisim", "_blank", "noopener")}>{T("İletişim sayfası")}</button>
+            )}
+          </div>
+        </Sheet>
+      )}
+
+      <button
+        className="card outline list-card"
+        style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, color: "var(--red, #e5484d)", fontWeight: 600, padding: "14px" }}
+        onClick={() => {
+          if (window.confirm(T("Çıkış yapmak istediğinize emin misiniz?"))) onLogout?.();
+        }}
+      >
+        <Icon name="logout" size={18} color="var(--red, #e5484d)" />
+        {T("Çıkış Yap")}
+      </button>
+    </div>
+  );
+}

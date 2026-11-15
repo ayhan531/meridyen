@@ -482,7 +482,7 @@ export async function apiPublicConfig(ctx: Ctx): Promise<Reply> {
         font: s.ui_font_family ?? 'Inter',
         radius: s.ui_radius ?? '16',
         support_email: s.content_support_email ?? s.official_email ?? '',
-        support_phone: s.content_support_phone ?? s.official_phone ?? '0850 888 7000',
+        support_phone: s.content_support_phone ?? s.official_phone ?? '',
       },
       company_information_complete: ['name', 'registry_number', 'address', 'phone', 'email', 'license_text'].every((k) => pyBool((company as any)[k])),
       fees: {

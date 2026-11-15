@@ -409,6 +409,8 @@ export async function createSchema(): Promise<void> {
 /** migrate_db içindeki yinelenebilir düzeltmeler. */
 export async function normalizeData(conn: Conn): Promise<void> {
   await conn.run("UPDATE t2_settlements SET remaining_amount=amount WHERE status='pending' AND remaining_amount<=0");
+  /* Eski kurulumlardan kalan 'OT' müşteri numarası önekini Meridyen önekine çevirir. */
+  await conn.run("UPDATE users SET account_no='MY'||SUBSTR(account_no,3) WHERE account_no LIKE 'OT%' AND NOT EXISTS (SELECT 1 FROM users u2 WHERE u2.account_no='MY'||SUBSTR(users.account_no,3))").catch(() => {});
   for (const row of await conn.all("SELECT id FROM users WHERE account_no IS NULL OR account_no=''")) {
     await conn.run('UPDATE users SET account_no=? WHERE id=?', [await generateAccountNo(conn), row.id]);
   }

@@ -104,7 +104,7 @@ async function saveStatus(conn: Conn, ok: boolean, source: string, result: Row |
 export async function syncParticipationIndex(text?: string | null, source = 'otomatik'): Promise<Row> {
   try {
     if (text === undefined || text === null) {
-      const { body } = await httpBytes(cfg.participationFeedUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; OttomanYatirim/1.0)' }, timeoutMs: 40_000, maxBytes: 8_000_000 });
+      const { body } = await httpBytes(cfg.participationFeedUrl, { headers: { 'User-Agent': 'Mozilla/5.0 (compatible; MeridyenYatirim/1.0)' }, timeoutMs: 40_000, maxBytes: 8_000_000 });
       text = body.toString('utf-8');
     }
     const [symbols, listTs] = parseCsv(text);

@@ -258,7 +258,7 @@ export async function httpJson(url: string, opts: Parameters<typeof httpBytes>[1
   return JSON.parse(body.toString('utf-8'));
 }
 
-export const UA_BACKEND = 'OttomanBackend/2.0';
+export const UA_BACKEND = 'MeridyenBackend/2.0';
 export const UA_BROWSER = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/126.0 Safari/537.36';
 
 /** Python'da float olan (ör. 791.0) ama JS'te tam sayı görünen değerlerin işaretçisi: pyJson "791.0" yazar. */

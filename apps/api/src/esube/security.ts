@@ -101,10 +101,10 @@ export function riskProfileFor(score: number): string {
 /** Rastgele 5 haneli, benzersiz müşteri numarası: OT + 5 rakam. */
 export async function generateAccountNo(conn: Conn): Promise<string> {
   for (let i = 0; i < 50; i++) {
-    const candidate = 'OT' + String(randomInt(0, 100000)).padStart(5, '0');
+    const candidate = 'MY' + String(randomInt(0, 100000)).padStart(5, '0');
     if (!(await conn.get('SELECT 1 FROM users WHERE account_no=?', [candidate]))) return candidate;
   }
-  return 'OT' + String(randomInt(0, 100000)).padStart(5, '0');
+  return 'MY' + String(randomInt(0, 100000)).padStart(5, '0');
 }
 
 export async function sendResetEmail(email: string, resetUrl: string): Promise<boolean> {
